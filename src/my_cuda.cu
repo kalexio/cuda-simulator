@@ -17,6 +17,6 @@ extern "C" void dummy_gpu(){
    dummy_gpu_kernel<<<1,1>>>(2,7,dev_c);
    cudaMemcpy(&c,dev_c,sizeof(int),cudaMemcpyDeviceToHost);
    printf("2 + 7 = %d\n",c);
-   printf("executed!\n");
+   printf("Executed!\n");
    cudaFree(dev_c);
 }
