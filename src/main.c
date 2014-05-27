@@ -39,14 +39,12 @@ static const char* const usage_template =
 
 int main (int argc, char* const argv[])
 {
-	//int i,j;
-	//char c;
+	int i,j;
+	char c;
 	nodummy = 0;
     program_name = argv[0];
 	double u1, u2, total = 0;
 	struct timeval tv;
-	
-	dummy_gpu();
     
     /*******************************************************************
      * 						Make the structures
@@ -118,17 +116,18 @@ int main (int argc, char* const argv[])
 		system_error ("read_vectors");
 	
 	
-	
+
 	/*******************************************************************
 	 * 						Logic simulation
 	 * ****************************************************************/
 	
 	
-	/*logic simulation here
+	/*logic simulation here */
 	LUT = create_lut (LUT);
-	logic_sim();
+	dummy_gpu();
+	//logic_sim();
 
-	i=0; j=0;
+	/*i=0; j=0;
 	if(test_name[0]=='\0') {
 		while((c=circuit_name[i++])!='\0') {
 			if(c=='/') j=0;
@@ -137,7 +136,7 @@ int main (int argc, char* const argv[])
 		}
 		test_name[j]='\0';
 		strcat(test_name,".test");
-	}*/
+	} */
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;

@@ -85,7 +85,7 @@ src/my_cuda.o : ../src/my_cuda.cu \
     /usr/local/cuda-5.5/bin/..//include/texture_indirect_functions.h \
     /usr/local/cuda-5.5/bin/..//include/surface_indirect_functions.h \
     /usr/local/cuda-5.5/bin/..//include/device_launch_parameters.h \
-    ../src/my_cuda.h \
+    ../src/define.h \
     /usr/include/stdio.h \
     /usr/include/libio.h \
     /usr/include/_G_config.h \
@@ -94,4 +94,7 @@ src/my_cuda.o : ../src/my_cuda.cu \
     /usr/include/gconv.h \
     /usr/lib/gcc/x86_64-redhat-linux/4.1.2/include/stdarg.h \
     /usr/include/bits/sys_errlist.h \
+    ../src/structs.h \
+    ../src/parameter.h \
+    ../src/my_cuda.h \
     /usr/local/cuda-5.5/bin/..//include/math_functions_dbl_ptx3.h

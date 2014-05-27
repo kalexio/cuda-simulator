@@ -45,25 +45,25 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
  * 					Read as chars
  * ********************************************************************/   
     /* Open it again and read from the start */
-    vectors_fd = fopen (vectors_name, "r");
-	if (vectors_fd == NULL)
-		system_error ("fopen");
+    //vectors_fd = fopen (vectors_name, "r");
+	//if (vectors_fd == NULL)
+		//system_error ("fopen");
     
     
     /* Reads the vectors into the test_set array as chars */
-    patterns = 0;
-	while ((c = getvector (vectors_fd, symbol)) != EOF) {
+    //patterns = 0;
+	//while ((c = getvector (vectors_fd, symbol)) != EOF) {
 		//printf("here patterns %d\n",patterns);
-		test_set[patterns] = xmalloc((levels[0]+1)*sizeof(char));
-		strcpy(test_set[patterns],symbol);
+		//test_set[patterns] = xmalloc((levels[0]+1)*sizeof(char));
+		//strcpy(test_set[patterns],symbol);
 		//printf("symbol = %s\n",test_set[patterns]);
-		patterns++;
-	} 
+		//patterns++;
+	//}
 	
 	//printf("getvector patterns %d\n",patterns);
 	
 	/* Close the vectors file and open it again */
-    fclose(vectors_fd);	
+    //fclose(vectors_fd);
 
 
 
@@ -102,18 +102,18 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 	//printf("getpatterns patterns %d\n",patterns);
 	
 	
-	/* Test the int reading vectors */
-	/*for (i = 0; i < levels[0]; i++) {
+	/* Test the int reading vectors
+	for (i = 0; i < levels[0]; i++) {
 		for ( j = 0; j < patterns; j++) printf("%d",test_sets[j][i]);
 		printf("\n");
-	}*/
+	} */
 	
 	
 	
 	
 	
 	printf("End patterns %d\n",patterns);
-	allocate_and_init ();
+	//allocate_and_init ();
 	allocate_cudatables ();
 	init_first_level (cuda_tables[0]);
  
@@ -142,10 +142,10 @@ void init_first_level (THREADPTR table)
 {
 	int i, j, pos;
 	
-	printf("Gates fn  data\n");
+	//printf("Gates fn  data\n");
 	for (i = 0; i<levels[0]; i++)
 	{
-		printf("%s  %d ",net[i]->symbol->symbol,net[i]->fn);
+		//printf("%s  %d ",net[i]->symbol->symbol,net[i]->fn);
 		for (j = 0; j<patterns; j++) {
 			pos = i*patterns + j;
 			table[pos].offset = 0;
@@ -155,9 +155,9 @@ void init_first_level (THREADPTR table)
 			table[pos].input[2] = 0;
 			table[pos].input[3] = 0;
 			table[pos].input[4] = 0;
-			printf("%d",table[pos].input[0]);
+			//printf("%d",table[pos].input[0]);
 		}
-		printf("\n");
+		//printf("\n");
 	
 	}
 }

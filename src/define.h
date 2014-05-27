@@ -118,4 +118,8 @@ extern void fault_sim ();
 extern void set_injection_bits(FAULTYPE ); 
 extern void print_fault_sim (FILE *);
 int fault_eval (THREADFAULTYPE );
+
+/***********************************************************************
+ *
+ **********************************************************************/
 #endif 
