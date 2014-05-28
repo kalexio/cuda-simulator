@@ -14,14 +14,14 @@ __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,in
 	if (tid < length) {
 		THREADTYPE data = dev_table[tid];
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
-		int output = tex1Dfetch(texLUT,index);
+		int output = tex1D(texLUT,index);
 		dev_res[tid].output = output;
 	}
 }
 
 
 extern "C" void dummy_gpu(){
-	int i;
+	//int i;
 	int blocks;
 	THREADPTR dev_table = NULL;
 	RESULTPTR dev_res = NULL;
@@ -30,6 +30,11 @@ extern "C" void dummy_gpu(){
 	int length = patterns*levels[0];
 	cudaError_t err = cudaSuccess;
 
+
+	//cudaDeviceProp prop;
+
+	//if(prop.deviceOverlap)
+		//printf(" speed up from streams :)\n");
 
 	// texture memory
 	err = cudaMalloc( (void**)&dev_LUT, 182*sizeof(int));
