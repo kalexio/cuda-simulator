@@ -31,26 +31,23 @@ extern "C" void dummy_gpu(){
 
 
 
-	// texture memory
+	//allocations for texture memory
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
-
-	printf("LUT[0] = %d\n",LUT[0]);
-
+    //allocations cuda table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size));
+	//allocations for result table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, patterns*levels[0]*sizeof(int)));
+	//fill and bind the texture
 	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
-
-
 	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
 
-
-    // cuda table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size));
-
+	//copy from Ram to device
 	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[0], size, cudaMemcpyHostToDevice));
 
-	//res table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, patterns*levels[0]*sizeof(int)));
-
+	printf("LUT[0] = %d\n",LUT[0]);
 	printf("%d\n",patterns*levels[0]);
+
+
 	blocks = (patterns*levels[0]+127)/128;
     logic_simulation_kernel<<<blocks,128>>>(dev_table,dev_res,length);
 
