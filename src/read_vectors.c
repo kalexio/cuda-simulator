@@ -128,6 +128,8 @@ void allocate_cudatables ()
 	int i;
 	maxgates = 0;
 	
+	//vale memset opwsdhpote <----------------------------------------------
+
 	cuda_tables = xmalloc(maxlevel*sizeof(THREADPTR));
 	result_tables = xmalloc(maxlevel*sizeof(RESULTPTR));
 	
@@ -143,7 +145,8 @@ void allocate_cudatables ()
 
 void init_first_level (THREADPTR table)
 {
-	int i, j, pos;
+	int i, j;
+	register int pos;
 	
 	//printf("Gates fn  data\n");
 	for (i = 0; i<levels[0]; i++)
@@ -163,6 +166,33 @@ void init_first_level (THREADPTR table)
 		//printf("\n");
 	
 	}
+}
+
+
+
+void init_any_level(int lev,THREADPTR table,RESULTPTR result)
+{
+	GATEPTR cg,hg;
+	int i,j,k;
+	register int pos;
+
+	//for all the gates of the lev level
+	for (i = 0; i<=event_list[lev].last; i++) {
+		cg = event_list[lev].list[i];
+		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
+		for (k = 0; k<cg->ninput; k++) {
+			//cg->inlis[k]->
+		}
+		//for all the patterns for this gate
+		for ( j = 0; j<patterns; j++) {
+			pos = i*patterns + j;
+			table[pos].offset = find_offset(cg);
+			table[pos].count = 0;
+
+		}
+	}
+
+
 }
 ////////////////////////////////////////////////////////////////////////
 

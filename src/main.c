@@ -143,7 +143,7 @@ int main (int argc, char* const argv[])
     
     total=(u2-u1);
     
-    printf("Time for logic simulation: %f usec\n", total);
+    printf("\nCPU Time for logic simulation: %f usec\n", total);
     total= 0;
 
     //print_logic_sim();

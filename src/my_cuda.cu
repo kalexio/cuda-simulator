@@ -7,6 +7,9 @@ extern "C" {
 
 texture<int> texLUT;
 
+THREADPTR dev_table = NULL;
+RESULTPTR dev_res = NULL;
+int *dev_LUT = NULL;
 
 __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,int length){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -22,41 +25,27 @@ __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,in
 extern "C" void dummy_gpu(){
 	int i;
 	int blocks;
-	THREADPTR dev_table = NULL;
-	RESULTPTR dev_res = NULL;
-	int *dev_LUT = NULL;
-	size_t size = patterns*levels[0]*sizeof(THREADTYPE);
+
+	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
 	int length = patterns*levels[0];
 
-
-
-
-	//allocations for texture memory
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
-    //allocations cuda table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size));
-	//allocations for result table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, patterns*levels[0]*sizeof(int)));
-	//fill and bind the texture
-	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
-	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
+	device_allocations();
 
 	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[0], size, cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[0], length*sizeof(THREADTYPE), cudaMemcpyHostToDevice));
 
-	printf("LUT[0] = %d\n",LUT[0]);
-	printf("%d\n",patterns*levels[0]);
-	printf("maxgates %d\n",maxgates);
+	printf("length of array=%d\n",length);
+	printf("maxgates=%d\n",maxgates);
 
 
-	blocks = (patterns*levels[0]+127)/128;
+	blocks = (length+127)/128;
     logic_simulation_kernel<<<blocks,128>>>(dev_table,dev_res,length);
 
 
-	HANDLE_ERROR( cudaMemcpy(result_tables[0], dev_res,patterns*levels[0]*sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaMemcpy(result_tables[0], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
 
-    for (i = 0; i<54; i++ )
+    for (i = 0; i<250; i++ )
     	printf("%d",result_tables[0][i]);
 
     // Free device global memory
@@ -66,9 +55,18 @@ extern "C" void dummy_gpu(){
 }
 
 
+
 void device_allocations()
 {
+	size_t size = patterns*maxgates;
 
-
-
+	//allocations for texture memory
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
+    //allocations cuda table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size*sizeof(THREADTYPE)));
+	//allocations for result table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
+	//fill and bind the texture
+	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
 }

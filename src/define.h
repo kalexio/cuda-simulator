@@ -75,7 +75,7 @@ extern char getsymbol (FILE*, char*);
  extern int maxlevel;
  extern STACKPTR event_list;
  extern STACKTYPE stack1, stack2;
- extern int *levels;  //number of gates in each leve
+ extern int *levels;  //number of gates in each level
  extern int compute_level ();
  extern void allocate_stacks();
  extern void allocate_event_list();
@@ -97,6 +97,7 @@ THREADTYPE **cuda_tables;
 RESULTYPE **result_tables;
 extern void allocate_cudatables ();
 extern void init_first_level (THREADPTR);
+extern void init_any_level(int,THREADPTR,RESULTPTR);
 extern void getpatterns (FILE * );
 
 /***********************************************************************
