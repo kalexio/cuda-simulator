@@ -92,6 +92,7 @@ extern int find_offset (GATEPTR);
 extern char **test_set;
 extern int **test_sets;
 extern int patterns;  //number of vectors for simulation
+extern int maxgates;  //number of max gates at any level
 THREADTYPE **cuda_tables;
 RESULTYPE **result_tables;
 extern void allocate_cudatables ();

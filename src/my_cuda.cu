@@ -46,6 +46,7 @@ extern "C" void dummy_gpu(){
 
 	printf("LUT[0] = %d\n",LUT[0]);
 	printf("%d\n",patterns*levels[0]);
+	printf("maxgates %d\n",maxgates);
 
 
 	blocks = (patterns*levels[0]+127)/128;
@@ -62,4 +63,12 @@ extern "C" void dummy_gpu(){
     HANDLE_ERROR( cudaFree(dev_table));
     HANDLE_ERROR( cudaFree(dev_res));
     HANDLE_ERROR( cudaDeviceReset());
+}
+
+
+void device_allocations()
+{
+
+
+
 }

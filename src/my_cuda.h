@@ -18,5 +18,6 @@ static void HandleError( cudaError_t err,const char *file,int line ) {
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
 void dummy_gpu();
+void device_allocations();
 
 #endif
