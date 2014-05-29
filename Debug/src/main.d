@@ -35,4 +35,25 @@ src/main.o : ../src/main.c \
     /usr/include/string.h \
     ../src/structs.h \
     ../src/parameter.h \
-    ../src/my_cuda.h
+    ../src/my_cuda.h \
+    /usr/local/cuda-5.5/bin/..//include/cuda_runtime.h \
+    /usr/local/cuda-5.5/bin/..//include/host_config.h \
+    /usr/local/cuda-5.5/bin/..//include/builtin_types.h \
+    /usr/local/cuda-5.5/bin/..//include/device_types.h \
+    /usr/local/cuda-5.5/bin/..//include/host_defines.h \
+    /usr/local/cuda-5.5/bin/..//include/driver_types.h \
+    /usr/lib/gcc/x86_64-redhat-linux/4.1.2/include/limits.h \
+    /usr/lib/gcc/x86_64-redhat-linux/4.1.2/include/syslimits.h \
+    /usr/include/limits.h \
+    /usr/include/bits/posix1_lim.h \
+    /usr/include/bits/local_lim.h \
+    /usr/include/linux/limits.h \
+    /usr/include/bits/posix2_lim.h \
+    /usr/local/cuda-5.5/bin/..//include/surface_types.h \
+    /usr/local/cuda-5.5/bin/..//include/texture_types.h \
+    /usr/local/cuda-5.5/bin/..//include/vector_types.h \
+    /usr/local/cuda-5.5/bin/..//include/channel_descriptor.h \
+    /usr/local/cuda-5.5/bin/..//include/cuda_runtime_api.h \
+    /usr/local/cuda-5.5/bin/..//include/cuda_device_runtime_api.h \
+    /usr/local/cuda-5.5/bin/..//include/driver_functions.h \
+    /usr/local/cuda-5.5/bin/..//include/vector_functions.h
