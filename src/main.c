@@ -39,7 +39,7 @@ static const char* const usage_template =
 
 int main (int argc, char* const argv[])
 {
-	int i,j;
+	int i,j,k;
 	char c;
 	nodummy = 0;
     program_name = argv[0];
@@ -126,10 +126,13 @@ int main (int argc, char* const argv[])
 	LUT = create_lut (LUT);
 	device_allocations();
 	dummy_gpu(0);
-	printf("\ngpu data from first level computed ready\n");
-	init_any_level(1,cuda_tables[1],result_tables[0]);
-	printf("data for second level ready\n");
-	dummy_gpu(1);
+	//printf("\ngpu data from first level computed ready\n");
+	for (k = 1; k<maxlevel; k++) {
+		init_any_level(k,cuda_tables[k]);
+		//printf("data for %d level ready\n",k);
+		dummy_gpu(k);
+	}
+
 
 	//logic_sim();
 

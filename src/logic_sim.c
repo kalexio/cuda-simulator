@@ -17,10 +17,10 @@ void logic_sim ()
 			cg = event_list[i].list[j];
 			for ( k = 0; k<patterns; k++) {
 				//if (i == 0) {
-					cg->result[k].output = gate_eval(cg->threadData[k]); //υπολογισμος εξοδου πυλης 
+					cg->result[k].output = gate_eval(cg->threadData[k]); //���������������������� ������������ ���������� 
 					for ( l = 0; l<cg->noutput; l++){
-						cg->outlis[l]->threadData[k].input[cg->outlis[l]->threadData[k].count] = cg->result[k].output;
-						cg->outlis[l]->threadData[k].count++;
+						//cg->outlis[l]->threadData[k].input[cg->outlis[l]->threadData[k].count] = cg->result[k].output;
+						//cg->outlis[l]->threadData[k].count++;
 					}
 					//prepei na kateuthinoume ta dedomena stis outlis
 				//}

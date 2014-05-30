@@ -155,7 +155,7 @@ void init_first_level (THREADPTR table)
 		for (j = 0; j<patterns; j++) {
 			pos = i*patterns + j;
 			table[pos].offset = 0;
-			table[pos].count = 0;
+			//table[pos].count = 0;
 			table[pos].input[0] = test_sets[j][i];
 			table[pos].input[1] = 0;
 			table[pos].input[2] = 0;
@@ -171,29 +171,47 @@ void init_first_level (THREADPTR table)
 
 
 
-void init_any_level(int lev,THREADPTR table,RESULTPTR result)
+void init_any_level(int lev,THREADPTR table)
 {
 	GATEPTR cg,hg,pg;
-	int i,j,k,l, gatepos;
+	int i,j,k,l,gatepos,m;
 	register int pos;
+	int flag;
+	int epipedo;
 
 	//for all the gates of the lev level
 	for (i = 0; i<=event_list[lev].last; i++) {
 		cg = event_list[lev].list[i];
+		//printf("%s\n",cg->symbol->symbol);
 		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
+
 		for (k = 0; k<cg->ninput; k++) {
+			flag = 0;
 			hg = cg->inlis[k];
-			for (l = 0; l<=event_list[lev-1].last; l++) {
-				pg = event_list[lev-1].list[l];
-				if (pg == hg) { gatepos = l; break;}
+			//for (l = 0; l<=event_list[lev-1].last; l++) {
+			for (l = 0; l<nog; l++) {
+				//pg = event_list[lev-1].list[l];
+				pg = net[l];
+				if (pg->index == hg->index)  {
+					//printf("found\n");
+					epipedo = pg->level;
+					for (m = 0; m<=event_list[epipedo].last; m++) {
+						pg = event_list[epipedo].list[m];
+						if (pg->index == hg->index) gatepos = m;
+					}
+					flag = 1;
+					break;
+				}
 			}
+
+			if(flag==0) printf("not found\n");
 
 			//for all the patterns for this gate
 			for ( j = 0; j<patterns; j++) {
 				pos = i*patterns + j;
 				table[pos].offset = find_offset(cg);
-				table[pos].count = 0;
-				table[pos].input[k] = result[l*patterns+j].output;
+				//table[pos].count = 0;
+				table[pos].input[k] = result_tables[epipedo][gatepos*patterns+j].output;
 
 			}
 		}
@@ -285,6 +303,7 @@ int find_offset (GATEPTR cg)
 			else if (inputs == 3) offset = NOR3;
 			else if (inputs == 4) offset = NOR4;
 			break;
+		case PO: offset = PO;
 	}
 	
 	return (offset);

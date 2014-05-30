@@ -23,7 +23,7 @@ __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,in
 
 
 extern "C" void dummy_gpu(int level){
-	int i;
+	//int i;
 	int blocks;
 
 	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
@@ -34,8 +34,8 @@ extern "C" void dummy_gpu(int level){
 	//copy from Ram to device
 	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[level], length*sizeof(THREADTYPE), cudaMemcpyHostToDevice));
 
-	printf("length of array=%d\n",length);
-	printf("maxgates=%d\n",maxgates);
+	//printf("length of array=%d\n",length);
+	//printf("maxgates=%d\n",maxgates);
 
 
 	blocks = (length+127)/128;
@@ -47,6 +47,7 @@ extern "C" void dummy_gpu(int level){
 
     //for (i = 0; i<length; i++ )
     	//printf("%d",result_tables[level][i]);
+    //printf("\n");
 
     // Free device global memory
     //HANDLE_ERROR( cudaFree(dev_table));

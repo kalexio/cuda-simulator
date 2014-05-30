@@ -97,7 +97,7 @@ THREADTYPE **cuda_tables;
 RESULTYPE **result_tables;
 extern void allocate_cudatables ();
 extern void init_first_level (THREADPTR);
-extern void init_any_level(int,THREADPTR,RESULTPTR);
+extern void init_any_level(int,THREADPTR);
 extern void getpatterns (FILE * );
 
 /***********************************************************************
