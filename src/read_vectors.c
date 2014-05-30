@@ -170,10 +170,11 @@ void init_first_level (THREADPTR table)
 
 
 
+
 void init_any_level(int lev,THREADPTR table,RESULTPTR result)
 {
-	GATEPTR cg,hg;
-	int i,j,k;
+	GATEPTR cg,hg,pg;
+	int i,j,k,l, gatepos;
 	register int pos;
 
 	//for all the gates of the lev level
@@ -181,19 +182,25 @@ void init_any_level(int lev,THREADPTR table,RESULTPTR result)
 		cg = event_list[lev].list[i];
 		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
 		for (k = 0; k<cg->ninput; k++) {
-			//cg->inlis[k]->
-		}
-		//for all the patterns for this gate
-		for ( j = 0; j<patterns; j++) {
-			pos = i*patterns + j;
-			table[pos].offset = find_offset(cg);
-			table[pos].count = 0;
+			hg = cg->inlis[k];
+			for (l = 0; l<=event_list[lev-1].last; l++) {
+				pg = event_list[lev-1].list[l];
+				if (pg == hg) { gatepos = l; break;}
+			}
 
+			//for all the patterns for this gate
+			for ( j = 0; j<patterns; j++) {
+				pos = i*patterns + j;
+				table[pos].offset = find_offset(cg);
+				table[pos].count = 0;
+				table[pos].input[k] = result[l*patterns+j].output;
+
+			}
 		}
 	}
-
-
 }
+
+
 ////////////////////////////////////////////////////////////////////////
 
 
