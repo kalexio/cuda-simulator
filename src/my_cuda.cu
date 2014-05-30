@@ -22,17 +22,17 @@ __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,in
 }
 
 
-extern "C" void dummy_gpu(){
+extern "C" void dummy_gpu(int level){
 	int i;
 	int blocks;
 
 	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
-	int length = patterns*levels[0];
+	int length = patterns*levels[level];
 
-	device_allocations();
+	//device_allocations();
 
 	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[0], length*sizeof(THREADTYPE), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[level], length*sizeof(THREADTYPE), cudaMemcpyHostToDevice));
 
 	printf("length of array=%d\n",length);
 	printf("maxgates=%d\n",maxgates);
@@ -42,21 +42,21 @@ extern "C" void dummy_gpu(){
     logic_simulation_kernel<<<blocks,128>>>(dev_table,dev_res,length);
 
 
-	HANDLE_ERROR( cudaMemcpy(result_tables[0], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaMemcpy(result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
 
-    for (i = 0; i<250; i++ )
-    	printf("%d",result_tables[0][i]);
+    //for (i = 0; i<length; i++ )
+    	//printf("%d",result_tables[level][i]);
 
     // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table));
-    HANDLE_ERROR( cudaFree(dev_res));
-    HANDLE_ERROR( cudaDeviceReset());
+    //HANDLE_ERROR( cudaFree(dev_table));
+    //HANDLE_ERROR( cudaFree(dev_res));
+    //HANDLE_ERROR( cudaDeviceReset());
 }
 
 
 
-void device_allocations()
+extern "C" void device_allocations()
 {
 	size_t size = patterns*maxgates;
 

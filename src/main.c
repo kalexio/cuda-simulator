@@ -124,7 +124,13 @@ int main (int argc, char* const argv[])
 	
 	/*logic simulation here */
 	LUT = create_lut (LUT);
-	dummy_gpu();
+	device_allocations();
+	dummy_gpu(0);
+	printf("\ngpu data from first level computed ready\n");
+	init_any_level(1,cuda_tables[1],result_tables[0]);
+	printf("data for second level ready\n");
+	dummy_gpu(1);
+
 	//logic_sim();
 
 	/*i=0; j=0;
