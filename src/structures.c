@@ -172,6 +172,8 @@ void levelize()
 {
 	register int i, j, new=0;
 	GATEPTR cg;
+	//
+	int level_pos;
 	
 	levels = (int *)xmalloc(maxlevel*(sizeof(int)));
 
@@ -180,11 +182,13 @@ void levelize()
 
 	for (i =0 ; i<maxlevel; i++) {
 		levels[i] = event_list[i].last+1;
+		level_pos = 0;
 		//printf("oi pules epipedou %d einai %d\n",i,event_list[i].last+1);
 		//printf("oi pules epipedou %d einai %d\n",i,levels[i]);
 		for (j = 0; j<=event_list[i].last; j++) {	
 			cg = event_list[i].list[j];
 			cg->index = new++;
+			cg->level_pos = level_pos++;
 		}
 		//clear(event_list[i]);
 	}
