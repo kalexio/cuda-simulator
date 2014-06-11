@@ -110,7 +110,7 @@ int main (int argc, char* const argv[])
 	/* Start the timer */	
 	gettimeofday(&tv,NULL);
    	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-		
+
 	/* Read the vector file and put the input values to the INPUT GATES */
 	if (read_vectors (vectors_fd,vectors_name) != 0)
 		system_error ("read_vectors");
@@ -122,7 +122,7 @@ int main (int argc, char* const argv[])
 	 * ****************************************************************/
 	
 	
-	/*logic simulation here */
+	/*logic simulation here for cuda*/
 	LUT = create_lut (LUT);
 	device_allocations();
 	dummy_gpu(0);
@@ -163,6 +163,16 @@ int main (int argc, char* const argv[])
 	/*******************************************************************
 	 * 						Fault simulation
 	 * ****************************************************************/
+
+    /* fault simulation for cuda here */
+
+
+
+
+
+
+
+
 
 	//<----------------------------------------------------------------
 	//fault simulation here

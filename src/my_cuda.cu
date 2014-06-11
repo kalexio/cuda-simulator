@@ -25,9 +25,11 @@ __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,in
 extern "C" void dummy_gpu(int level){
 	//int i;
 	int blocks;
+	int threads;
 
 	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
 	int length = patterns*levels[level];
+	//printf("Length is %d\n",length);
 
 	//device_allocations();
 
@@ -37,9 +39,14 @@ extern "C" void dummy_gpu(int level){
 	//printf("length of array=%d\n",length);
 	//printf("maxgates=%d\n",maxgates);
 
-
-	blocks = (length+127)/128;
-    logic_simulation_kernel<<<blocks,128>>>(dev_table,dev_res,length);
+	threads = 128;
+	blocks = (length+(threads-1))/threads;
+	if (blocks < 200) {
+		threads = 64;
+		blocks = (length+(threads-1))/threads;
+	}
+   // printf("The number of blocks %d\n",blocks);
+    logic_simulation_kernel<<<blocks,threads>>>(dev_table,dev_res,length);
 
 
 	HANDLE_ERROR( cudaMemcpy(result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
@@ -60,6 +67,13 @@ extern "C" void dummy_gpu(int level){
 extern "C" void device_allocations()
 {
 	size_t size = patterns*maxgates;
+	int dev;
+
+	//HANDLE_ERROR( cudaGetDevice (&dev));
+	//printf("ID of current CUDA device: %d\n",dev);
+	HANDLE_ERROR( cudaSetDevice (2));
+	//HANDLE_ERROR( cudaGetDevice (&dev));
+	//printf("ID of current CUDA device: %d\n",dev);
 
 	//allocations for texture memory
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
