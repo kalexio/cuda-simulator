@@ -10,6 +10,7 @@ texture<int> texLUT;
 THREADPTR dev_table = NULL;
 RESULTPTR dev_res = NULL;
 int *dev_LUT = NULL;
+//int total=0;
 
 __global__ void logic_simulation_kernel(THREADPTR dev_table,RESULTPTR dev_res,int length){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -27,9 +28,11 @@ extern "C" void dummy_gpu(int level){
 	int blocks;
 	int threads;
 
+
 	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
 	int length = patterns*levels[level];
-	//printf("Length is %d\n",length);
+	//total=total+length;
+	//printf("Length is %d\n",total);
 
 	//device_allocations();
 
@@ -67,7 +70,7 @@ extern "C" void dummy_gpu(int level){
 extern "C" void device_allocations()
 {
 	size_t size = patterns*maxgates;
-	int dev;
+	//int dev;
 
 	//HANDLE_ERROR( cudaGetDevice (&dev));
 	//printf("ID of current CUDA device: %d\n",dev);
