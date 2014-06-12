@@ -230,35 +230,30 @@ void init_any_level(int lev,THREADPTR table)
 	GATEPTR cg,hg,pg;
 	int i,j,k,l,gatepos,m;
 	register int pos;
-	int flag;
 	int epipedo;
 	int offset,array,arr;
 
 	//for all the gates of the lev level
 	for (i = 0; i<=event_list[lev].last; i++) {
 		cg = event_list[lev].list[i];
+		offset = find_offset(cg);
 		//printf("%s\n",cg->symbol->symbol);
 		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
 
 		for (k = 0; k<cg->ninput; k++) {
-			flag = 0;
 			hg = cg->inlis[k];
 			epipedo = hg->level;
 			gatepos = hg->level_pos;
 
 			//opts
-			pos = i*patterns;
-			offset = find_offset(cg);
 			array=gatepos*patterns;
 			arr = i*patterns;
-
 
 			//for all the patterns for this gate
 			for ( j = 0; j<patterns; j++) {
 				pos = arr + j;
 				table[pos].offset = offset;
 				table[pos].input[k] = result_tables[epipedo][array+j].output;
-
 			}
 		}
 	}
