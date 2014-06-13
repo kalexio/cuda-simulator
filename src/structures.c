@@ -1,11 +1,6 @@
 #include "define.h"
 
-/* macros for LIFO stack operation */
-#define EMPTY (-1)
-#define push(s,ele) s.list[++(s.last)]=ele
-#define pop(s) s.list[(s.last)--]
-#define clear(s) s.last=EMPTY
-#define is_empty(s) (s.last<0)
+
 
 
 

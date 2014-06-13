@@ -6,6 +6,7 @@
 C_SRCS += \
 ../src/common.c \
 ../src/fault_sim.c \
+../src/fsim.c \
 ../src/hashes.c \
 ../src/logic_sim.c \
 ../src/main.c \
@@ -22,6 +23,7 @@ CU_DEPS += \
 OBJS += \
 ./src/common.o \
 ./src/fault_sim.o \
+./src/fsim.o \
 ./src/hashes.o \
 ./src/logic_sim.o \
 ./src/main.o \
@@ -33,6 +35,7 @@ OBJS += \
 C_DEPS += \
 ./src/common.d \
 ./src/fault_sim.d \
+./src/fsim.d \
 ./src/hashes.d \
 ./src/logic_sim.d \
 ./src/main.d \

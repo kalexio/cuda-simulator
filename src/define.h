@@ -102,15 +102,15 @@ extern void getpatterns (FILE * );
 
 /***********************************************************************
 * 						defined in logic_sim.c						   *
-*********************************************************************/
+***********************************************************************/
  extern int* create_lut (int *);
  extern int gate_eval (THREADTYPE );
  extern void logic_sim ();
  extern void print_logic_sim();
  
 /**********************************************************************
-* 					defined in fault_sim.c                         *
-* *********************************************************************/
+* 					defined in fault_sim.c                            *
+* ********************************************************************/
 extern FAULTPTR fault_list; 
 extern int total_faults;
 extern void create_fault_list ();
@@ -122,6 +122,18 @@ extern void print_fault_sim (FILE *);
 int fault_eval (THREADFAULTYPE );
 
 /***********************************************************************
- *
+ *                   defined in fsim.c								   *
  **********************************************************************/
+extern void find_TFO(GATEPTR);
+
+
+
+/* needed especially in structures.c */
+/* macros for LIFO stack operation */
+#define EMPTY (-1)
+#define push(s,ele) s.list[++(s.last)]=ele
+#define pop(s) s.list[(s.last)--]
+#define clear(s) s.last=EMPTY
+#define is_empty(s) (s.last<0)
+
 #endif 

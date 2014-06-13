@@ -165,10 +165,12 @@ int main (int argc, char* const argv[])
 	 * ****************************************************************/
 
     /* fault simulation for cuda here */
+    //tha mporoume na thn pairnoume kai etoimh thn fault list
 
-
-
-
+	//create_fault_list ();
+	//print_fault_list();
+	//gettimeofday(&tv,NULL);
+   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
 
 
