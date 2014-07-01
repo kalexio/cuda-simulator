@@ -167,7 +167,9 @@ int main (int argc, char* const argv[])
     /* fault simulation for cuda here */
     //tha mporoume na thn pairnoume kai etoimh thn fault list
 
-	//create_fault_list ();
+    //creates the fault list only for faults at the output of the gates
+    //and not for the branches
+	create_fault_list ();
 	//print_fault_list();
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;

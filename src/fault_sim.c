@@ -3,6 +3,7 @@
 
 FAULTPTR fault_list;
 int total_faults;
+int no_po_faults;
 
 void fault_sim () 
 {
@@ -23,7 +24,7 @@ void fault_sim ()
 				cg = event_list[i].list[j];
 				for ( k = 0; k<patterns; k++) {
 					//if (i == 0) {
-						cg->result[k].output = fault_eval(cg->faultData[k]); //υπολογισμος εξοδου πυλης 
+						cg->result[k].output = fault_eval(cg->faultData[k]); //���������������������� ������������ ����������
 						for ( l = 0; l<cg->noutput; l++){
 							cg->outlis[l]->faultData[k].input[cg->outlis[l]->faultData[k].count] = cg->result[k].output;
 							cg->outlis[l]->faultData[k].count++;
@@ -168,6 +169,7 @@ void create_fault_list ()
 	int j = 0;
 	
 	total_faults = 2*(nog-levels[maxlevel-1]);
+	no_po_faults = 0;
 	printf("total fault =%d\n",total_faults);
 	
 	fault_list = (FAULTYPE *)xmalloc(total_faults*sizeof(FAULTYPE));
@@ -175,12 +177,15 @@ void create_fault_list ()
 	
 	for (i= 0; i<total_faults; i+=2) {
 		fault_list[i].gate = net[j];
+		if ( net[j]->outlis[0]->fn != PO ) no_po_faults++;
 		fault_list[i].SA = 0;
 		fault_list[i+1].gate = net[j];
+		if ( net[j]->outlis[0]->fn != PO ) no_po_faults++;
 		fault_list[i+1].SA = 1;
 		j++;		
 	}
 	
+	printf("total no output fault =%d\n",no_po_faults);
 }
 
 

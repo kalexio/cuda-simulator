@@ -113,6 +113,7 @@ extern void getpatterns (FILE * );
 * ********************************************************************/
 extern FAULTPTR fault_list; 
 extern int total_faults;
+extern int no_po_faults;
 extern void create_fault_list ();
 extern void print_fault_list ();
 extern void allocate_and_init_faults ();
@@ -125,7 +126,7 @@ int fault_eval (THREADFAULTYPE );
  *                   defined in fsim.c								   *
  **********************************************************************/
 extern void find_TFO(GATEPTR);
-
+extern allocate_cuda_faultables();
 
 
 /* needed especially in structures.c */

@@ -1,30 +1,13 @@
 #include "define.h"
 #include "structs.h"
 
-void alloc_TFO()
+THREADFAULTYPE fault_tables;
+
+allocate_cuda_faultables()
 {
-	//total_faults;
+	int i;
 
-
-}
-void find_TFO(GATEPTR gut)
-{
-	int i,j,neighbor;
-
-	clear(stack1);
-
-	//nomizw einai -1 giati koitame ta epipeda ths pulhs pou ksekinane apo mhden
-	for (i = gut->level; i<(maxlevel-1); i++){
-		//exei outlis
-		if (gut->fn != PO) {
-			for (j = 0; j<gut->noutput; j++){
-
-			}
-		}
-		// den exei outlis ara einai PO
-		else{}
-	}
-
+	fault_tables = xmalloc(no_po_faults*sizeof(THREADFAULTYPE));
 
 
 }
