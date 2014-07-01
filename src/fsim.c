@@ -1,7 +1,7 @@
 #include "define.h"
 #include "structs.h"
 
-THREADFAULTYPE fault_tables;
+THREADFAULTPTR fault_tables;
 
 allocate_cuda_faultables()
 {
