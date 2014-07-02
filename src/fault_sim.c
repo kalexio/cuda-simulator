@@ -24,7 +24,7 @@ void fault_sim ()
 				cg = event_list[i].list[j];
 				for ( k = 0; k<patterns; k++) {
 					//if (i == 0) {
-						cg->result[k].output = fault_eval(cg->faultData[k]); //���������������������� ������������ ����������
+						cg->result[k].output = fault_eval(cg->faultData[k]); //������������������������������������������������������������������ ������������������������������������ ������������������������������
 						for ( l = 0; l<cg->noutput; l++){
 							cg->outlis[l]->faultData[k].input[cg->outlis[l]->faultData[k].count] = cg->result[k].output;
 							cg->outlis[l]->faultData[k].count++;
@@ -177,6 +177,7 @@ void create_fault_list ()
 	
 	for (i= 0; i<total_faults; i+=2) {
 		fault_list[i].gate = net[j];
+		//vriskei to sunolo twn faults_without po
 		if ( net[j]->outlis[0]->fn != PO ) no_po_faults++;
 		fault_list[i].SA = 0;
 		fault_list[i+1].gate = net[j];

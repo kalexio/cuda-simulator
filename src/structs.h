@@ -40,7 +40,7 @@ typedef struct THREAD {
 } THREADTYPE, *THREADPTR;
 
 typedef struct THREADFAULT {
-	int count;   //helps for the incoming values from multiple fanins
+	int count;   //helps for the incoming values from multiple fanins - we dont need it for cuda
 	int offset;
 	int input[4];
 	int m0;

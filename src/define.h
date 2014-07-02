@@ -126,7 +126,9 @@ int fault_eval (THREADFAULTYPE );
  *                   defined in fsim.c								   *
  **********************************************************************/
 extern void find_TFO(GATEPTR);
-extern allocate_cuda_faultables();
+extern void allocate_cuda_faultables();
+extern void init_faultable(THREADFAULTPTR);
+
 
 
 /* needed especially in structures.c */
