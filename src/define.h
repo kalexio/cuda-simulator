@@ -128,6 +128,8 @@ int fault_eval (THREADFAULTYPE );
 extern void find_TFO(GATEPTR);
 extern void allocate_cuda_faultables();
 extern void init_faultable(THREADFAULTPTR);
+extern THREADFAULTPTR fault_tables;
+extern int next_level_length;
 
 
 

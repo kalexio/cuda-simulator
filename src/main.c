@@ -170,7 +170,9 @@ int main (int argc, char* const argv[])
     //creates the fault list only for faults at the output of the gates
     //and not for the branches
 	create_fault_list ();
-	//print_fault_list();
+	print_fault_list();
+	allocate_cuda_faultables();
+	init_faultable(fault_tables);
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
