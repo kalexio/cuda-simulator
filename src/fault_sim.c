@@ -26,8 +26,8 @@ void fault_sim ()
 					//if (i == 0) {
 						cg->result[k].output = fault_eval(cg->faultData[k]); //������������������������������������������������������������������ ������������������������������������ ������������������������������
 						for ( l = 0; l<cg->noutput; l++){
-							cg->outlis[l]->faultData[k].input[cg->outlis[l]->faultData[k].count] = cg->result[k].output;
-							cg->outlis[l]->faultData[k].count++;
+							//cg->outlis[l]->faultData[k].input[cg->outlis[l]->faultData[k].count] = cg->result[k].output;
+							//cg->outlis[l]->faultData[k].count++;
 						}
 						//prepei na kateuthinoume ta dedomena stis outlis
 					//}
@@ -42,10 +42,10 @@ void fault_sim ()
 		fprintf(test_fd,"fault at gate=%s stack-at=%d\n",fault_list[n].gate->symbol->symbol,fault_list[n].SA);
 		print_fault_sim (test_fd);
 		//clean the counts
-		for (i = 0; i<nog; i++) {
-			for ( j = 0; j<patterns; j++) 
-				net[i]->faultData[j].count = 0;
-		}	
+		//for (i = 0; i<nog; i++) {
+			//for ( j = 0; j<patterns; j++)
+				//net[i]->faultData[j].count = 0;
+		//}
 		
 	}
 	
@@ -177,10 +177,14 @@ void create_fault_list ()
 	
 	for (i= 0; i<total_faults; i+=2) {
 		fault_list[i].gate = net[j];
+		fault_list[i].affected_gates = 0;
+		fault_list[i].end = 0;
 		//vriskei to sunolo twn faults_without po
 		if ( net[j]->outlis[0]->fn != PO ) no_po_faults++;
 		fault_list[i].SA = 0;
 		fault_list[i+1].gate = net[j];
+		fault_list[i+1].affected_gates = 0;
+		fault_list[i+1].end = 0;
 		if ( net[j]->outlis[0]->fn != PO ) no_po_faults++;
 		fault_list[i+1].SA = 1;
 		j++;		

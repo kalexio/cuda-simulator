@@ -40,12 +40,20 @@ typedef struct THREAD {
 } THREADTYPE, *THREADPTR;
 
 typedef struct THREADFAULT {
-	int count;   //helps for the incoming values from multiple fanins - we dont need it for cuda
+	//int count;   helps for the incoming values from multiple fanins - we dont need it for cuda
 	int offset;
 	int input[4];
 	int m0;
 	int m1;
 } THREADFAULTYPE, *THREADFAULTPTR;
+
+
+typedef struct THREADETECT {
+	//int count;   helps for the incoming values from multiple fanins - we dont need it for cuda
+	int offset;
+	int input[4];
+	int Good_Circuit_threadID;
+} THREADETECTYPE, *THREADETECTPTR;
 
 typedef struct RESULT {
 	int output;
@@ -54,6 +62,8 @@ typedef struct RESULT {
 typedef struct FAULT {
 	struct GATE *gate;
 	int SA;
+	int affected_gates;
+	int end;
 } FAULTYPE, *FAULTPTR;
 
 #endif
