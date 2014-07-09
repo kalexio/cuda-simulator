@@ -149,11 +149,12 @@ int main (int argc, char* const argv[])
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    
+
     total=(u2-u1);
-    
+
     printf("\nCPU Time for logic simulation: %f usec\n", total);
     total= 0;
+    device_deallocations();
 
     //print_logic_sim();
 	
@@ -171,8 +172,14 @@ int main (int argc, char* const argv[])
     //and not for the branches
 	create_fault_list ();
 	//print_fault_list();
+	//mnhmh gia ta arxika sfalmata
 	allocate_cuda_faultables();
+	//mnhmh gia ta telika detection sfalmata
+	allocate_cuda_detectables();
+	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
 	init_faultable(fault_tables,detect_tables);
+	device_allocations2();
+	dummy_gpu2(0);
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 

@@ -17,7 +17,13 @@ static void HandleError( cudaError_t err,const char *file,int line ) {
                             printf( "Host memory failed in %s at line %d\n", \
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
+
 void dummy_gpu(int);
+void dummy_gpu2(int);
 void device_allocations();
+void device_allocations2();
+void device_deallocations();
+void device_deallocations2();
+
 
 #endif

@@ -2,6 +2,7 @@
 #include "structs.h"
 
 THREADFAULTPTR fault_tables;
+RESULTPTR fault_result_tables;
 THREADFAULTPTR detect_tables;
 int next_level_length = 0;
 int detect_index = 0;
@@ -10,12 +11,19 @@ void allocate_cuda_faultables()
 {
 	//desmeuoyme mnhmh gia to prwto epipedo osa einai ta faults without the PO faults
 	fault_tables = xmalloc(no_po_faults*patterns*sizeof(THREADFAULTYPE));
+	fault_result_tables = xmalloc(no_po_faults*patterns*sizeof(RESULTYPE));
 	//printf("the lenght is %d\n",no_po_faults*patterns);
 }
 
 void allocate_cuda_detectables()
 {
 	detect_tables = xmalloc(10000*sizeof(THREADFAULTYPE));
+}
+
+
+void allocate_TFO_lists()
+{
+
 }
 
 //arxikopoiei to prwto epipedo tou pinaka faults
@@ -26,7 +34,7 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 	int inj_bit0 = 1;
 	int inj_bit1 = 0;
 	int epipedo, gatepos, array, arr, pos;
-	int real_faults = 0;
+	int real_faults = -1;
 
 
 	printf("i am in faultable\n");
@@ -38,15 +46,17 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 		offset = find_offset(cg);
 		if (fault_list[i].SA == 0) {inj_bit0 = 0; inj_bit1 = 0;}
 		else inj_bit1 = 1;
-		printf("%s",cg->symbol->symbol);
+		printf("%s\n",cg->symbol->symbol);
 		if ( cg->outlis[0]->fn != PO ) { //den einai PO
 			real_faults++;
+			//printf("I am not a PO real fault=%d\n",real_faults);
 			fault_list[i].affected_gates = cg->noutput;
 			next_level_length = next_level_length + fault_list[i].affected_gates;
 			//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
 			//to result tous gia sygkekrimeno pattern
 			//an einai PI diavase apla to vectors
 			if (cg->fn != PI) {//den einai PI opote diavazoume apo prohgoymenes pules
+				//printf("i am not a PI\n");
 				for (k = 0; k<cg->ninput; k++) {
 					hg = cg->inlis[k];
 					//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
@@ -73,7 +83,7 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 				//poia pulh sth seira einai
 				gatepos = cg->level_pos;
 				arr = real_faults*patterns;
-				printf("I am a PI read the input vector\n");
+				//printf("I am a PI read the input vector\n");
 				for (j = 0; j<patterns; j++){
 					pos = arr + j;
 					table[pos].offset = offset;
@@ -92,7 +102,6 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 			//end this fault
 			fault_list[i].end = 1;
 			printf("I am a PO send me to the detection\n");
-			printf("Am i here?");
 			//MAKE INSERT FAULT FUNCTION <---------------------------
 			//etoimase tis PO gia to detection kernel
 			//ftiakse kai to GoodSim <------------------------------------------------------------
@@ -123,3 +132,8 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 }
 
 
+void compute_TFO()
+{
+
+
+}
