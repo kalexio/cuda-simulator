@@ -18,6 +18,7 @@ typedef struct GATE {
     short level;
     int changed;
     short ninput;
+    int *TFO_list;
     struct THREAD *threadData;
     struct THREADFAULT *faultData;
     struct RESULT *result;
@@ -64,6 +65,12 @@ typedef struct FAULT {
 	int SA;
 	int affected_gates;
 	int end;
+	//thesh tou sfalmatos sto teliko detect
+	int fault_pos_indetect;
+	//lista me tis pyles TFO
+	struct GATE **list;
 } FAULTYPE, *FAULTPTR;
+
+
 
 #endif

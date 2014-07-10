@@ -105,8 +105,8 @@ extern "C" void dummy_gpu2(int level){
 	HANDLE_ERROR( cudaMemcpy(fault_result_tables, dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
 
-    for (i = 0; i<length; i++ )
-    	printf("%d",fault_result_tables[i]);
+    //for (i = 0; i<length; i++ )
+    	//printf("%d",fault_result_tables[i]);
 }
 
 
@@ -162,7 +162,7 @@ extern "C" void device_deallocations()
 extern "C" void device_deallocations2()
 {
     // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table));
+    HANDLE_ERROR( cudaFree(dev_table2));
     HANDLE_ERROR( cudaFree(dev_res));
     HANDLE_ERROR( cudaDeviceReset());
 

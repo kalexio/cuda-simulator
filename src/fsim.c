@@ -4,6 +4,7 @@
 THREADFAULTPTR fault_tables;
 RESULTPTR fault_result_tables;
 THREADFAULTPTR detect_tables;
+//STACKPTR *TFO_list;
 int next_level_length = 0;
 int detect_index = 0;
 
@@ -12,6 +13,7 @@ void allocate_cuda_faultables()
 	//desmeuoyme mnhmh gia to prwto epipedo osa einai ta faults without the PO faults
 	fault_tables = xmalloc(no_po_faults*patterns*sizeof(THREADFAULTYPE));
 	fault_result_tables = xmalloc(no_po_faults*patterns*sizeof(RESULTYPE));
+	//TFO //genikos deikths se lista gia ola ta sfalamata
 	//printf("the lenght is %d\n",no_po_faults*patterns);
 }
 
@@ -21,10 +23,33 @@ void allocate_cuda_detectables()
 }
 
 
+
 void allocate_TFO_lists()
 {
+	int i;
+	GATEPTR cg;
+
+	for (i = 0; i<nog; i++) {
+			cg = net[i];
+			//allocate an array for the TFO gates
+			cg->TFO_list = xmalloc(total_faults*sizeof(int));
+	}
+
+	for (i = 0; i<total_faults; i++){
+
+		cg = fault_list[i].gate;
+
+
+
+
+
+
+
+	}
+
 
 }
+
 
 //arxikopoiei to prwto epipedo tou pinaka faults
 void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
@@ -101,6 +126,8 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 		else {
 			//end this fault
 			fault_list[i].end = 1;
+			//deixnei th thesh tou sfalmatos ston teliko pinaka
+			fault_list[i].fault_pos_indetect = detect_index;
 			printf("I am a PO send me to the detection\n");
 			//MAKE INSERT FAULT FUNCTION <---------------------------
 			//etoimase tis PO gia to detection kernel
@@ -132,8 +159,22 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 }
 
 
-void compute_TFO()
+/*void compute_TFO(FAULTPTR fault)
 {
+	int i;
+	for (i = 0; i<fault.gate->noutput; i++){
+		fault.list[i] =
+	}
 
+	//koita ta epipeda gia sigouria maxlevel
+	for (i = fault.gate->level+1; i< maxlevel-1; i++){
+
+	}
 
 }
+*/
+
+
+
+
+

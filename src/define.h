@@ -129,7 +129,7 @@ extern void find_TFO(GATEPTR);
 extern void allocate_cuda_faultables();
 extern void allocate_cuda_detectables();
 extern void init_faultable(THREADFAULTPTR, THREADFAULTPTR);
-extern void compute_TFO();
+//extern void compute_TFO(FAULTPTR);
 extern void allocate_TFO_lists();
 extern THREADFAULTPTR fault_tables;
 extern RESULTPTR fault_result_tables;
