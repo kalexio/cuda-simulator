@@ -3,8 +3,7 @@
 
 
 
-
-STACKTYPE stack1, stack2;
+STACKTYPE stack1, stack2, stack3;
 STACKPTR event_list;
 int maxlevel;
 int *levels;
@@ -14,8 +13,10 @@ void allocate_stacks ()
 {
 	stack1.list = (GATEPTR *)xmalloc(nog*sizeof(GATEPTR));
 	stack2.list = (GATEPTR *)xmalloc(nog*sizeof(GATEPTR));
+	stack3.list = (GATEPTR *)xmalloc(nog*sizeof(GATEPTR));
 	clear(stack1);
-	clear(stack2);	
+	clear(stack2);
+	clear(stack3);
 } 
 
 

@@ -1,54 +1,42 @@
 #include "define.h"
 #include "structs.h"
 
-THREADFAULTPTR fault_tables;
-RESULTPTR fault_result_tables;
+THREADFAULTPTR *fault_tables;
+RESULTPTR *fault_result_tables;
 THREADFAULTPTR detect_tables;
 //STACKPTR *TFO_list;
 int next_level_length = 0;
+//deixnei se poio sfalma eimaste apo ta anixneumena
 int detect_index = 0;
+
+
 
 void allocate_cuda_faultables()
 {
 	//desmeuoyme mnhmh gia to prwto epipedo osa einai ta faults without the PO faults
-	fault_tables = xmalloc(no_po_faults*patterns*sizeof(THREADFAULTYPE));
-	fault_result_tables = xmalloc(no_po_faults*patterns*sizeof(RESULTYPE));
+	fault_tables = xmalloc((maxlevel-2)*sizeof(THREADFAULTPTR));
+	fault_result_tables = xmalloc((maxlevel-2)*sizeof(RESULTPTR));
+	fault_tables[0] = xmalloc(no_po_faults*patterns*sizeof(THREADFAULTYPE));
+	fault_result_tables[0] = xmalloc(no_po_faults*patterns*sizeof(RESULTYPE));
+	detect_tables = xmalloc(10000*sizeof(THREADFAULTYPE));
 	//TFO //genikos deikths se lista gia ola ta sfalamata
 	//printf("the lenght is %d\n",no_po_faults*patterns);
 }
 
-void allocate_cuda_detectables()
-{
-	detect_tables = xmalloc(10000*sizeof(THREADFAULTYPE));
-}
 
 
-
+//allocate an array for the TFO gates
 void allocate_TFO_lists()
 {
 	int i;
 	GATEPTR cg;
 
 	for (i = 0; i<nog; i++) {
-			cg = net[i];
-			//allocate an array for the TFO gates
-			cg->TFO_list = xmalloc(total_faults*sizeof(int));
+		cg = net[i];
+		cg->TFO_list = xmalloc(total_faults*sizeof(int));
 	}
-
-	for (i = 0; i<total_faults; i++){
-
-		cg = fault_list[i].gate;
-
-
-
-
-
-
-
-	}
-
-
 }
+
 
 
 //arxikopoiei to prwto epipedo tou pinaka faults
@@ -59,7 +47,7 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 	int inj_bit0 = 1;
 	int inj_bit1 = 0;
 	int epipedo, gatepos, array, arr, pos;
-	int real_faults = -1;
+	int real_faults = -1;  // <-----------------------
 
 
 	printf("i am in faultable\n");
@@ -103,8 +91,8 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 				}//end for inputs
 			}//end of not PI
 			else {
-				fault_list[i].affected_gates = cg->noutput;
-				next_level_length = next_level_length + fault_list[i].affected_gates;
+				//fault_list[i].affected_gates = cg->noutput;
+				//next_level_length = next_level_length + fault_list[i].affected_gates;
 				//poia pulh sth seira einai
 				gatepos = cg->level_pos;
 				arr = real_faults*patterns;
@@ -159,22 +147,45 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 }
 
 
-/*void compute_TFO(FAULTPTR fault)
+
+void compute_TFO()
 {
-	int i;
-	for (i = 0; i<fault.gate->noutput; i++){
-		fault.list[i] =
-	}
+	int i, j;
+	GATEPTR cg, ng;
 
-	//koita ta epipeda gia sigouria maxlevel
-	for (i = fault.gate->level+1; i< maxlevel-1; i++){
+	for (i = 0; i<total_faults; i++){
+		if (fault_list[i].end != 1) {
+			//ypologise ta TFO list
+			clear(stack3);
+			cg = fault_list[i].gate;
+			//printf("H pylh gia thn opoia tha vroyme lista einai h %s me out %d\n",cg->symbol->symbol,cg->noutput);
+			for (j = 0; j<cg->noutput; j++) {
+				ng = cg->outlis[j];
+				if (ng->fn != PO) push(stack3,ng);
+			}
 
+			while (!is_empty(stack3)) {
+				cg = pop(stack3);
+				//printf("exei TFO tis %s\n",cg->symbol->symbol);
+				cg->TFO_list[i] = 1;
+				for (j = 0; j<cg->noutput; j++) {
+					ng = cg->outlis[j];
+					if ((ng->fn != PO) && (ng->TFO_list[i] != 1)) push(stack3,ng);
+				}
+			}
+
+		}
 	}
+}
+
+
+
+//vazei tis pules pou prepei na eksomoiwthoun gia kathe sfalma
+void init_anylevel_faultable(int lev, int prev_len)
+{
+
+
+
+
 
 }
-*/
-
-
-
-
-

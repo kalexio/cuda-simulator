@@ -174,12 +174,12 @@ int main (int argc, char* const argv[])
 	//print_fault_list();
 	//mnhmh gia ta arxika sfalmata
 	allocate_cuda_faultables();
-	//mnhmh gia ta telika detection sfalmata
-	allocate_cuda_detectables();
 	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
-	init_faultable(fault_tables,detect_tables);
+	init_faultable(fault_tables[0],detect_tables);
 	device_allocations2();
 	dummy_gpu2(0);
+	allocate_TFO_lists();
+	compute_TFO();
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 

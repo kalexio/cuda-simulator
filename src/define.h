@@ -74,7 +74,7 @@ extern char getsymbol (FILE*, char*);
  extern int add_PO ();
  extern int maxlevel;
  extern STACKPTR event_list;
- extern STACKTYPE stack1, stack2;
+ extern STACKTYPE stack1, stack2, stack3;
  extern int *levels;  //number of gates in each level
  extern int compute_level ();
  extern void allocate_stacks();
@@ -127,12 +127,12 @@ int fault_eval (THREADFAULTYPE );
  **********************************************************************/
 extern void find_TFO(GATEPTR);
 extern void allocate_cuda_faultables();
-extern void allocate_cuda_detectables();
 extern void init_faultable(THREADFAULTPTR, THREADFAULTPTR);
-//extern void compute_TFO(FAULTPTR);
+extern void compute_TFO();
 extern void allocate_TFO_lists();
-extern THREADFAULTPTR fault_tables;
-extern RESULTPTR fault_result_tables;
+extern void init_anylevel_faultable(int, int);
+extern THREADFAULTPTR *fault_tables;
+extern RESULTPTR *fault_result_tables;
 extern THREADFAULTPTR detect_tables;
 extern int next_level_length;
 extern int detect_index;

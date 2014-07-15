@@ -87,7 +87,7 @@ extern "C" void dummy_gpu2(int level){
 	//printf("Length is %d\n",total);
 
 	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table, fault_tables, length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaMemcpy(dev_table, fault_tables[level], length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
 
 	//printf("length of array=%d\n",length);
 	//printf("maxgates=%d\n",maxgates);
@@ -102,7 +102,7 @@ extern "C" void dummy_gpu2(int level){
 	fault_injection_kernel<<<blocks,threads>>>(dev_table2,dev_res,length);
 
 
-	HANDLE_ERROR( cudaMemcpy(fault_result_tables, dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaMemcpy(fault_result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
 
     //for (i = 0; i<length; i++ )
