@@ -68,7 +68,7 @@ typedef struct FAULT {
 	//thesh tou sfalmatos sto teliko detect
 	int fault_pos_indetect;
 	//lista me tis pyles TFO
-	struct GATE **list;
+	struct STACK TFO_stack;
 } FAULTYPE, *FAULTPTR;
 
 

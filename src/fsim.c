@@ -5,7 +5,7 @@ THREADFAULTPTR *fault_tables;
 RESULTPTR *fault_result_tables;
 THREADFAULTPTR detect_tables;
 //STACKPTR *TFO_list;
-int next_level_length = 0;
+int next_level_length;
 //deixnei se poio sfalma eimaste apo ta anixneumena
 int detect_index = 0;
 
@@ -63,8 +63,8 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 		if ( cg->outlis[0]->fn != PO ) { //den einai PO
 			real_faults++;
 			//printf("I am not a PO real fault=%d\n",real_faults);
-			fault_list[i].affected_gates = cg->noutput;
-			next_level_length = next_level_length + fault_list[i].affected_gates;
+			//fault_list[i].affected_gates = cg->noutput;
+			//next_level_length = next_level_length + fault_list[i].affected_gates;
 			//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
 			//to result tous gia sygkekrimeno pattern
 			//an einai PI diavase apla to vectors
@@ -143,41 +143,90 @@ void init_faultable(THREADFAULTPTR table,THREADFAULTPTR dtable)
 		}//end of else
 	}//end for faults
 	//printf("the lentgh is %d\n",pos+1);
-	printf("next level length is %d\n",next_level_length);
 }
 
 
 
 void compute_TFO()
 {
-	int i, j;
+	int i, j, k;
 	GATEPTR cg, ng;
+	int big_lev = -1;
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
 			//ypologise ta TFO list
+			clear(stack1);
+			clear(stack2);
 			clear(stack3);
 			cg = fault_list[i].gate;
-			//printf("H pylh gia thn opoia tha vroyme lista einai h %s me out %d\n",cg->symbol->symbol,cg->noutput);
+			printf("H pylh gia thn opoia tha vroyme lista einai h %s me out %d\n",cg->symbol->symbol,cg->noutput);
+			//vriskoume ta pules pou ephreazei to sfalma
 			for (j = 0; j<cg->noutput; j++) {
 				ng = cg->outlis[j];
-				if (ng->fn != PO) push(stack3,ng);
+				if (ng->fn != PO) {push(stack1,ng); push(stack2,ng);}
 			}
 
-			while (!is_empty(stack3)) {
-				cg = pop(stack3);
-				//printf("exei TFO tis %s\n",cg->symbol->symbol);
+			while (!is_empty(stack1)) {
+				cg = pop(stack1);
+				printf("exei TFO tis %s\n",cg->symbol->symbol);
 				cg->TFO_list[i] = 1;
 				for (j = 0; j<cg->noutput; j++) {
 					ng = cg->outlis[j];
-					if ((ng->fn != PO) && (ng->TFO_list[i] != 1)) push(stack3,ng);
+					if ((ng->fn != PO) && (ng->TFO_list[i] != 1)) {push(stack1,ng); push(stack2,ng);}
 				}
 			}
 
+			//desmeush mnhmh gia to stack to megethos kratietai sto stack2
+			//ftiaxnoyme mia stoiboula sto struct tou kathe sfalmatos
+			fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc((stack2.last+1)*sizeof(GATEPTR));
+			clear(fault_list[i].TFO_stack);
+			//sto stack3 vazoume me seira tis pules pou ephreazei to sfalma
+			for (j = fault_list[i].gate->level+1; j<maxlevel-1; j++){
+				for (k = 0; k<=event_list[j].last; k++){
+					cg = event_list[j].list[k];
+					if (cg->TFO_list[i] == 1) {push(stack3,cg); printf("oi pyles tou TFO me seira einai  %s\n",cg->symbol->symbol);}
+				}
+			}
+
+			if(stack3.last+1 == stack2.last+1) printf("mallon swsta ta ypologisame\n");
+
+			//vgazoume tis pules apo th stoiva me anastrofh seira kai tis eisagoume sth stoivoyla toy sfalmato
+			for (j = stack3.last+1; j> 0; j--) {
+				cg = pop(stack3);
+				push(fault_list[i].TFO_stack,cg);
+			}
+
+			printf("Our stack contains:\n");
+			for (j = 0; j<stack2.last+1; j++) printf("%s\n",fault_list[i].TFO_stack.list[j]->symbol->symbol);
 		}
 	}
 }
 
+
+
+int compute_length()
+{
+	int i;
+	int counter = 0;
+	int level;
+	int flag = 1;
+
+	for (i = 0; i<total_faults; i++){
+		if (fault_list[i].end != 1) {
+			// vres to arxiko epipedo ths prwths epomenhs pulhs
+
+			//vres tis pules ths stoivas pou exoun to idio level
+			//ara ksekina to apo to telos ths stoivas kai otan diaferoun stamata
+			for (j = 0; j<fault_list[i].TFO_stack.last+1; j++){
+				level = fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->level;
+				counter++;
+			}
+		}
+	}
+
+	return 0;
+}
 
 
 //vazei tis pules pou prepei na eksomoiwthoun gia kathe sfalma

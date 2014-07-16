@@ -131,6 +131,7 @@ extern void init_faultable(THREADFAULTPTR, THREADFAULTPTR);
 extern void compute_TFO();
 extern void allocate_TFO_lists();
 extern void init_anylevel_faultable(int, int);
+extern int compute_length();
 extern THREADFAULTPTR *fault_tables;
 extern RESULTPTR *fault_result_tables;
 extern THREADFAULTPTR detect_tables;
