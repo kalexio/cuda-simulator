@@ -180,6 +180,7 @@ int main (int argc, char* const argv[])
 	dummy_gpu2(0);
 	allocate_TFO_lists();
 	compute_TFO();
+	//compute_lenght();
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 

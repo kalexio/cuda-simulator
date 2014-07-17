@@ -182,7 +182,9 @@ void compute_TFO()
 			fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc((stack2.last+1)*sizeof(GATEPTR));
 			clear(fault_list[i].TFO_stack);
 			//sto stack3 vazoume me seira tis pules pou ephreazei to sfalma
+			//loop apo to epipedo tou sfalmatos mexri thn eksodo
 			for (j = fault_list[i].gate->level+1; j<maxlevel-1; j++){
+				//loop gia oles tis pules tou epipedou opou koitame an exoun to bit tou TFO
 				for (k = 0; k<=event_list[j].last; k++){
 					cg = event_list[j].list[k];
 					if (cg->TFO_list[i] == 1) {push(stack3,cg); printf("oi pyles tou TFO me seira einai  %s\n",cg->symbol->symbol);}
@@ -192,6 +194,14 @@ void compute_TFO()
 			if(stack3.last+1 == stack2.last+1) printf("mallon swsta ta ypologisame\n");
 
 			//vgazoume tis pules apo th stoiva me anastrofh seira kai tis eisagoume sth stoivoyla toy sfalmato
+			//pop me  is_emptyy??????????????????????????????????????????????????????
+
+
+			/*while (!is_empty(stack3)){
+				cg = pop(stack3);
+				push(fault_list[i].TFO_stack,cg);
+			}*/
+
 			for (j = stack3.last+1; j> 0; j--) {
 				cg = pop(stack3);
 				push(fault_list[i].TFO_stack,cg);
@@ -204,28 +214,35 @@ void compute_TFO()
 }
 
 
-
+//kaleitai ana epipedo alla de thelei orismata giati leotpurgei me ta stack twn sfalmatwn
 int compute_length()
 {
-	int i;
+	int i, j;
 	int counter = 0;
-	int level;
+	int level, init_level;
 	int flag = 1;
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
 			// vres to arxiko epipedo ths prwths epomenhs pulhs
-
+			init_level = fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->level;
+			fault_list[i].affected_gates = 1;
+			counter++;
 			//vres tis pules ths stoivas pou exoun to idio level
-			//ara ksekina to apo to telos ths stoivas kai otan diaferoun stamata
-			for (j = 0; j<fault_list[i].TFO_stack.last+1; j++){
-				level = fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->level;
-				counter++;
+			//ara ksekina to apo to telos ths stoivas -1  kai otan diaferoun stamata
+			for (j = fault_list[i].TFO_stack.last-1; j>=0; j--){
+				level = fault_list[i].TFO_stack.list[j]->level;
+				if (level == init_level){
+					fault_list[i].affected_gates++;
+					counter++;
+				}
+				else break;
 			}
 		}
 	}
 
-	return 0;
+	//returns the full number of affect gates for all the faults
+	return counter;
 }
 
 
