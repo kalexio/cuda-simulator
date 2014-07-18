@@ -19,6 +19,8 @@ typedef struct GATE {
     int changed;
     short ninput;
     int *TFO_list;
+    int *fault_level;
+    int *flevel_pos;
     struct THREAD *threadData;
     struct THREADFAULT *faultData;
     struct RESULT *result;

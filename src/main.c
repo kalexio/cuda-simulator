@@ -8,6 +8,7 @@ const char* circuit_name;
 const char* fault_name;
 const char* vectors_name;
 int nodummy;
+int next_level_length;
 char test_name[100]="";
 
 int* LUT;
@@ -172,15 +173,32 @@ int main (int argc, char* const argv[])
     //and not for the branches
 	create_fault_list ();
 	//print_fault_list();
-	//mnhmh gia ta arxika sfalmata
+	//mnhmh sth RAM gia ta arxika sfalmata
 	allocate_cuda_faultables();
+
 	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
 	init_faultable(fault_tables[0],detect_tables);
+
+	//mnhmh sto GPU
 	device_allocations2();
+
+	//ektelesh 1ou epipedou
 	dummy_gpu2(0);
+
+	//ypologise kwno
 	allocate_TFO_lists();
 	compute_TFO();
-	//compute_lenght();
+
+	//kaleitai prin apo kathe init any level
+	next_level_length = compute_length();
+	printf("plhthos %d\n",next_level_length);
+	init_anylevel_faultable(next_level_length, 1, fault_tables[1], detect_tables);
+	/*for (k = 1; k<maxlevel-2; k++) {
+		init_anylevel_faultable(next_level_length, k, fault_tables[k], detect_tables);
+		//printf("data for %d level ready\n",k);
+		dummy_gpu2(k);
+	}*/
+
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
