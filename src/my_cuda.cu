@@ -83,6 +83,7 @@ extern "C" void dummy_gpu2(int level){
 	//theloume ta no_po_faults na antistixoizontai me kapoio tropo me ta
 	//faults tou kathe epipedou
 	int length = no_po_faults*patterns;
+	if (level > 0) length = next_level_length * patterns;
 	//total=total+length;
 	//printf("Length is %d\n",total);
 

@@ -176,6 +176,8 @@ int main (int argc, char* const argv[])
 	//mnhmh sth RAM gia ta arxika sfalmata
 	allocate_cuda_faultables();
 
+	allocate_TFO_lists();
+
 	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
 	init_faultable(fault_tables[0],detect_tables);
 
@@ -186,18 +188,22 @@ int main (int argc, char* const argv[])
 	dummy_gpu2(0);
 
 	//ypologise kwno
-	allocate_TFO_lists();
+	//allocate_TFO_lists();
 	compute_TFO();
 
 	//kaleitai prin apo kathe init any level
-	next_level_length = compute_length();
-	printf("plhthos %d\n",next_level_length);
-	init_anylevel_faultable(next_level_length, 1, fault_tables[1], detect_tables);
-	/*for (k = 1; k<maxlevel-2; k++) {
-		init_anylevel_faultable(next_level_length, k, fault_tables[k], detect_tables);
+	//next_level_length = compute_length();
+	//printf("plhthos %d\n",next_level_length);
+	//allocate_next_level(next_level_length, 1);
+	//init_anylevel_faultable(1, fault_tables[1], detect_tables);
+	for (k = 1; k<maxlevel-1; k++) {
+		next_level_length = compute_length();
+		printf("plhthos %d\n",next_level_length);
+		allocate_next_level(next_level_length, k);
+		init_anylevel_faultable(k, fault_tables[k], detect_tables);
 		//printf("data for %d level ready\n",k);
 		dummy_gpu2(k);
-	}*/
+	}
 
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
