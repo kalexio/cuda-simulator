@@ -20,10 +20,13 @@ static void HandleError( cudaError_t err,const char *file,int line ) {
 
 void dummy_gpu(int);
 void dummy_gpu2(int);
+void dummy_gpu3();
 void device_allocations();
 void device_allocations2();
+void device_allocations3();
 void device_deallocations();
 void device_deallocations2();
+void device_deallocations3();
 
 
 #endif

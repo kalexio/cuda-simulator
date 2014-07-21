@@ -4,8 +4,8 @@
 THREADFAULTPTR *fault_tables;
 RESULTPTR *fault_result_tables;
 THREADFAULTPTR detect_tables;
-//STACKPTR *TFO_list;
-//deixnei se poio sfalma eimaste apo ta anixneumena
+RESULTPTR GoodSim;
+RESULTPTR Final;
 int detect_index = -1;
 
 
@@ -13,13 +13,11 @@ int detect_index = -1;
 void allocate_cuda_faultables()
 {
 	//desmeuoyme mnhmh gia to prwto epipedo osa einai ta faults without the PO faults
-	fault_tables = xmalloc((maxlevel-1)*sizeof(THREADFAULTPTR));
-	fault_result_tables = xmalloc((maxlevel-1)*sizeof(RESULTPTR));
+	//tha prepei sta epomena epipeda na mh desmeuoyme kai gia ta inejection bits
+	fault_tables = xmalloc((maxlevel-2)*sizeof(THREADFAULTPTR));
+	fault_result_tables = xmalloc((maxlevel-2)*sizeof(RESULTPTR));
 	fault_tables[0] = xmalloc(no_po_faults*patterns*sizeof(THREADFAULTYPE));
 	fault_result_tables[0] = xmalloc(no_po_faults*patterns*sizeof(RESULTYPE));
-	detect_tables = xmalloc(10000*sizeof(THREADFAULTYPE));
-	//TFO //genikos deikths se lista gia ola ta sfalamata
-	//printf("the lenght is %d\n",no_po_faults*patterns);
 }
 
 
@@ -44,7 +42,7 @@ void allocate_TFO_lists()
 
 
 //arxikopoiei to prwto epipedo tou pinaka faults
-void init_faultable(THREADFAULTPTR table, THREADFAULTPTR dtable)
+void init_faultable(THREADFAULTPTR table)
 {
 	int i, j, k, offset;
 	GATEPTR cg, hg;
@@ -54,7 +52,7 @@ void init_faultable(THREADFAULTPTR table, THREADFAULTPTR dtable)
 	int real_faults = -1;  // <-----------------------
 
 
-	//printf("i am in faultable\n");
+	printf("i am in faultable\n");
 
 	//ola ta sfalamata ektos twn PO (apo fault_list)
 	for (i = 0; i<total_faults; i++){
@@ -64,8 +62,7 @@ void init_faultable(THREADFAULTPTR table, THREADFAULTPTR dtable)
 		offset = find_offset(cg);
 		if (fault_list[i].SA == 0) {inj_bit0 = 0; inj_bit1 = 0;}
 		else inj_bit1 = 1;
-		//printf("%s\n",cg->symbol->symbol);
-		if ( cg->outlis[0]->fn != PO ) { //den einai PO
+		if ( cg->outlis[0]->fn != PO ) {
 			real_faults++;
 			//thesh stou pinakes twn faults
 			cg->fault_level[i] = 0;
@@ -74,7 +71,6 @@ void init_faultable(THREADFAULTPTR table, THREADFAULTPTR dtable)
 			//to result tous gia sygkekrimeno pattern
 			//an einai PI diavase apla to vectors
 			if (cg->fn != PI) {//den einai PI opote diavazoume apo prohgoymenes pules
-				//printf("i am not a PI\n");
 				for (k = 0; k<cg->ninput; k++) {
 					hg = cg->inlis[k];
 					//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
@@ -117,37 +113,13 @@ void init_faultable(THREADFAULTPTR table, THREADFAULTPTR dtable)
 		else {
 			//end this fault
 			fault_list[i].end = 1;
-			//deixnei th thesh tou sfalmatos ston teliko pinaka
-			detect_index++;
-			fault_list[i].fault_pos_indetect = detect_index;
-			//poses pules ephreazei to sfalma ston detect table
-			fault_list[i].affected_gates = 1;
-			//printf("I am a PO send me to the detection\n");
-			//MAKE INSERT FAULT FUNCTION <---------------------------
-			//etoimase tis PO gia to detection kernel
-			//ftiakse kai to GoodSim <------------------------------------------------------------
-			for (k = 0; k<cg->ninput; k++) {
-				hg = cg->inlis[k];
-				//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
-				epipedo = hg->level;
-				gatepos = hg->level_pos;
-
-				//h thesh ston apothkeumeno pinaka
-				array=gatepos*patterns;
-				//h thesh ston pinaka pou ftiaxnoume
-				arr = detect_index*patterns;
-
-				for (j = 0; j<patterns; j++){
-					pos = arr + j;
-					dtable[pos].offset = offset;
-					dtable[pos].input[k] = result_tables[epipedo][array+j].output;
-					dtable[pos].m0 = inj_bit0;
-					dtable[pos].m1 = inj_bit1;
-				}//end for patterns
-			}//end for inputs
+			fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc(1*sizeof(GATEPTR));
+			clear(fault_list[i].TFO_stack);
+			push(fault_list[i].TFO_stack,fault_list[i].gate);
 		}//end of else
+
 	}//end for faults
-	//printf("the lentgh is %d\n",pos+1);
+
 }
 
 
@@ -203,19 +175,13 @@ void compute_TFO()
 			//if(stack3.last+1 == stack2.last+1) printf("mallon swsta ta ypologisame\n");
 
 			//vgazoume tis pules apo th stoiva me anastrofh seira kai tis eisagoume sth stoivoyla toy sfalmato
-			//pop me  is_emptyy??????????????????????????????????????????????????????
-
 
 			while (!is_empty(stack3)){
 				cg = pop(stack3);
 				push(fault_list[i].TFO_stack,cg);
 			}
 
-			/*for (j = stack3.last+1; j> 0; j--) {
-				cg = pop(stack3);
-				push(fault_list[i].TFO_stack,cg);
-			}*/
-
+			//Error checking for the final stack
 			//printf("Our stack contains:\n");
 			//for (j = 0; j<stack2.last+1; j++) printf("%s\n",fault_list[i].TFO_stack.list[j]->symbol->symbol);
 		}
@@ -277,7 +243,7 @@ void allocate_next_level(int prev_len, int loop)
 //vazei tis pules pou prepei na eksomoiwthoun gia kathe sfalma
 //dexetai ton arithmo pulwn gia desmeush mnhmhs tous pinakes pou tha valei tis pyles kai
 //ton arithmo tou loop
-void init_anylevel_faultable(int loop, THREADFAULTPTR table, THREADFAULTPTR dtable)
+void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 {
 	int i, k, j;
 	GATEPTR cg, hg;
@@ -289,72 +255,16 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table, THREADFAULTPTR dtab
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
-			//PO
-			printf("arxikh pulh %s\n",fault_list[i].gate->symbol->symbol);
+			//printf("arxikh pulh %s\n",fault_list[i].gate->symbol->symbol);
 			if(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO){
-				printf("i am a PO\n");
+				//printf("i am a PO\n");
 				fault_list[i].end = 1;
-				detect_index++;
-				fault_list[i].fault_pos_indetect = detect_index;
-				fault_list[i].affected_gates = 0;
-				while(!is_empty(fault_list[i].TFO_stack)){
-					cg = pop(fault_list[i].TFO_stack);
-					printf("lista %s\n",cg->symbol->symbol);
-					offset = find_offset(cg);
 
-					//pare ta apotelesmata kai valta ston pinaka detect
-
-					for (k = 0; k<cg->ninput; k++) {
-						hg = cg->inlis[k];
-						if(hg->TFO_list[i] != 1){
-							//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
-							epipedo = hg->level;
-							gatepos = hg->level_pos;
-
-							//h thesh ston apothkeumeno pinaka
-							array=gatepos*patterns;
-							//h thesh ston pinaka pou ftiaxnoume
-							detect_index = detect_index + fault_list[i].affected_gates;
-							arr = detect_index * patterns;
-
-							for (j = 0; j<patterns; j++){
-								pos = arr + j;
-								dtable[pos].offset = offset;
-								dtable[pos].input[k] = result_tables[epipedo][array+j].output;
-								//mallon prepei na bgoun
-								dtable[pos].m0 = 1;
-								dtable[pos].m1 = 0;
-							}//end for patterns
-						}
-						else{
-							epipedo = hg->fault_level[i];
-							gatepos = hg->flevel_pos[i];
-
-							//h thesh ston apothkeumeno pinaka
-							array=gatepos*patterns;
-							//h thesh ston pinaka pou ftiaxnoume
-							detect_index = detect_index + fault_list[i].affected_gates;
-							arr = detect_index * patterns;
-
-							for (j = 0; j<patterns; j++){
-								pos = arr + j;
-								dtable[pos].offset = offset;
-								dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
-								//mallon prepei na bgoun
-								dtable[pos].m0 = 1;
-								dtable[pos].m1 = 0;
-							}//end for patterns
-
-						}
-					}//end for inputs
-
-					fault_list[i].affected_gates++;
-				}
 			}
 			//not PO yet
 			else{
 				//afairese apo th stoiboula oses pyles deixnei to affected kai valtes ston pinaka	
-				printf("not a PO\n");
+				//printf("not a PO\n");
 				//printf("epireazomenes pyles %d\n",fault_list[i].affected_gates);
 				while (fault_list[i].affected_gates > 0){
 					fault_list[i].affected_gates--;
@@ -364,12 +274,7 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table, THREADFAULTPTR dtab
 					//printf("offset %d\n",offset);
 					cg->fault_level[i] = loop;
 					cg->flevel_pos[i] = counter;
-					printf("lista %s\n",cg->symbol->symbol);
-
-					//for (k = cg->ninput-1; k > -1; k--){
-					  //  hg = cg->inlis[k];
-					   // printf("inputs %s\n",hg->symbol->symbol);
-					//}
+					//printf("lista %s\n",cg->symbol->symbol);
 					
 					for (k = 0; k<cg->ninput; k++){
 					    hg = cg->inlis[k];
@@ -414,7 +319,124 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table, THREADFAULTPTR dtab
 			}//end of else PO or not
 
 
+
 		}//end of faultlist.end
 	}//end of total faults
+}
+
+
+
+
+int compute_detected()
+{
+	int counter = 0;
+	int i, j;
+
+	for (i = 0; i<total_faults; i++){
+		counter = counter + fault_list[i].TFO_stack.last+1;
+		//printf("Error checking\n");
+		//printf("Pulh ->%d %s\n",i,fault_list[i].gate->symbol->symbol);
+		//printf("Our stack contains:\n");
+		//for (j = 0; j<fault_list[i].TFO_stack.last+1; j++) printf("%s\n",fault_list[i].TFO_stack.list[j]->symbol->symbol);
+	}
+
+	return counter;
+}
+
+void allocate_detect_goodsim(int detected)
+{
+	detect_tables = xmalloc(detected*patterns*sizeof(THREADFAULTYPE));
+	GoodSim = xmalloc(detected*patterns*sizeof(RESULTYPE));
+	Final = xmalloc(detected*patterns*sizeof(RESULTYPE));
+}
+
+
+void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
+{
+	int i, j, k;
+	GATEPTR cg, hg;
+	int counter = -1;
+	int epipedo, gatepos, array, arr, pos, offset;
+
+	printf("i am in detect\n");
+
+	for (i = 0; i<total_faults; i++){
+		//already done
+		if ((fault_list[i].end == 1) ||(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO)) {
+			printf("Arxiko sfalma %s\n",fault_list[i].gate->symbol->symbol);
+
+			while(!is_empty(fault_list[i].TFO_stack)){
+				cg = pop(fault_list[i].TFO_stack);
+				printf("lista %s\n",cg->symbol->symbol);
+				offset = find_offset(cg);
+				counter++;
+
+				//vres th thesh ths pulhs eksodou apo to logic sim
+				//kai vale thn eksodo sto gootable
+				epipedo = cg->level;
+				//printf("epipeda %d\n",epipedo);
+				gatepos = cg->level_pos;
+				//printf("gatepos %d\n",gatepos);
+
+				array=gatepos*patterns;
+				arr = counter * patterns;
+				//printf("arr %d\n",arr);
+
+				for (j = 0; j<patterns; j++){
+					pos = arr + j;
+					goodtable[pos].output = result_tables[epipedo][array+j].output;
+					//printf("%d",goodtable[pos].output);
+				}//end for patterns
+
+				//pare ta apotelesmata kai valta ston pinaka detect
+				for (k = 0; k<cg->ninput; k++) {
+					hg = cg->inlis[k];
+					if(hg->TFO_list[i] != 1){
+						//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
+						epipedo = hg->level;
+						gatepos = hg->level_pos;
+
+						//h thesh ston apothkeumeno pinaka
+						array=gatepos*patterns;
+						//h thesh ston pinaka pou ftiaxnoume
+
+						arr = counter * patterns;
+						//printf("arr %d\n",arr);
+
+						for (j = 0; j<patterns; j++){
+							pos = arr + j;
+							dtable[pos].offset = offset;
+							dtable[pos].input[k] = result_tables[epipedo][array+j].output;
+							//mallon prepei na bgoun
+							dtable[pos].m0 = 1;
+							dtable[pos].m1 = 0;
+						}//end for patterns
+					}
+					else{
+						epipedo = hg->fault_level[i];
+						gatepos = hg->flevel_pos[i];
+
+						//h thesh ston apothkeumeno pinaka
+						array=gatepos*patterns;
+						//h thesh ston pinaka pou ftiaxnoume
+						arr = counter * patterns;
+
+						for (j = 0; j<patterns; j++){
+							pos = arr + j;
+							dtable[pos].offset = offset;
+							dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
+							dtable[pos].m0 = 1;
+							dtable[pos].m1 = 0;
+						}//end for patterns
+
+					}
+				}//end for inputs
+
+			}//end of while
+
+		}
+		else printf("something went wrong!\n");
+	}
+
 
 }

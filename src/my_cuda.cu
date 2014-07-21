@@ -9,7 +9,9 @@ texture<int> texLUT;
 
 THREADPTR dev_table = NULL;
 THREADFAULTPTR dev_table2 = NULL;
+THREADFAULTPTR dev_table3 = NULL;
 RESULTPTR dev_res = NULL;
+RESULTPTR Goodsim = NULL;
 int *dev_LUT = NULL;
 //int total=0;
 
@@ -36,6 +38,17 @@ __global__ void fault_injection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_re
 	}
 }
 
+
+__global__ void fault_detection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_res,RESULTPTR Good,int length){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		THREADFAULTYPE data = dev_table[tid];
+		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
+		int output = tex1Dfetch(texLUT,index);
+		int output1 = Good[tid].output;
+		dev_res[tid].output = output ^ output1;
+	}
+}
 
 extern "C" void dummy_gpu(int level){
 	//int i;
@@ -76,19 +89,17 @@ extern "C" void dummy_gpu(int level){
 
 
 extern "C" void dummy_gpu2(int level){
-	int i;
+	//int i;
 	int blocks;
 	int threads;
 
-	//theloume ta no_po_faults na antistixoizontai me kapoio tropo me ta
-	//faults tou kathe epipedou
 	int length = no_po_faults*patterns;
 	if (level > 0) length = next_level_length * patterns;
 	//total=total+length;
-	//printf("Length is %d\n",total);
+	printf("CUDA length is %d\n",length);
 
 	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table, fault_tables[level], length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaMemcpy(dev_table2, fault_tables[level], length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
 
 	//printf("length of array=%d\n",length);
 	//printf("maxgates=%d\n",maxgates);
@@ -110,6 +121,40 @@ extern "C" void dummy_gpu2(int level){
     	//printf("%d",fault_result_tables[i]);
 }
 
+
+
+extern "C" void dummy_gpu3(){
+	//int i;
+	int blocks;
+	int threads;
+
+	int length = detect_index*patterns;
+	printf("CUDA3 length is %d\n",length);
+
+	printf("I am here\n");
+	//copy from Ram to device
+	HANDLE_ERROR( cudaMemcpy(dev_table3, detect_tables, length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaMemcpy(Goodsim, GoodSim, length*sizeof(int), cudaMemcpyHostToDevice));
+
+	//printf("length of array=%d\n",length);
+	//printf("maxgates=%d\n",maxgates);
+
+	threads = 128;
+	blocks = (length+(threads-1))/threads;
+	if (blocks < 200) {
+		threads = 64;
+		blocks = (length+(threads-1))/threads;
+	}
+   // printf("The number of blocks %d\n",blocks);
+	fault_detection_kernel<<<blocks,threads>>>(dev_table3,dev_res,Goodsim,length);
+
+
+	HANDLE_ERROR( cudaMemcpy(Final, dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
+
+
+    //for (i = 0; i<length; i++ )
+    	//printf("%d",fault_result_tables[i]);
+}
 
 
 
@@ -148,7 +193,18 @@ extern "C" void device_allocations2()
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
 }
 
+extern "C" void device_allocations3()
+{
+	int length = detect_index*patterns;
 
+	//HANDLE_ERROR( cudaSetDevice (2));
+
+    //allocations cuda table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, length*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR( cudaMalloc( (void**)&Goodsim, length*sizeof(int)));
+	//allocations for result table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, length*sizeof(int)));
+}
 
 
 extern "C" void device_deallocations()
@@ -160,11 +216,19 @@ extern "C" void device_deallocations()
 
 }
 
+
 extern "C" void device_deallocations2()
 {
     // Free device global memory
     HANDLE_ERROR( cudaFree(dev_table2));
     HANDLE_ERROR( cudaFree(dev_res));
-    HANDLE_ERROR( cudaDeviceReset());
+    //HANDLE_ERROR( cudaDeviceReset());
+}
 
+extern "C" void device_deallocations3()
+{
+    // Free device global memory
+    HANDLE_ERROR( cudaFree(dev_table3));
+    HANDLE_ERROR( cudaFree(dev_res));
+    HANDLE_ERROR( cudaDeviceReset());
 }
