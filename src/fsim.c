@@ -52,7 +52,7 @@ void init_faultable(THREADFAULTPTR table)
 	int real_faults = -1;  // <-----------------------
 
 
-	printf("i am in faultable\n");
+	//printf("i am in faultable\n");
 
 	//ola ta sfalamata ektos twn PO (apo fault_list)
 	for (i = 0; i<total_faults; i++){
@@ -88,6 +88,8 @@ void init_faultable(THREADFAULTPTR table)
 						table[pos].m0 = inj_bit0;
 						table[pos].m1 = inj_bit1;
 						table[pos].input[k] = result_tables[epipedo][array+j].output;
+						table[pos].input[2] = 0;
+						table[pos].input[3] = 0;
 					}//end for patterns
 				}//end for inputs
 			}//end of not PI
@@ -197,7 +199,7 @@ int compute_length()
 	int level, init_level;
 	int flag = 1;
 
-	printf("i am in compute length\n");
+	//printf("i am in compute length\n");
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
@@ -251,7 +253,7 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 	int real_faults = -1;
 	int counter = -1;
 
-	printf("I am in any level\n");
+	//printf("I am in any level\n");
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
@@ -279,8 +281,9 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 					for (k = 0; k<cg->ninput; k++){
 					    hg = cg->inlis[k];
 					    //printf("read input from %s\n",hg->symbol->symbol);
-					    //printf("TFO -> %d\n",hg->TFO_list[i]);
+					    //printf("TFO \n");
 					    if (hg->TFO_list[i] != 1){
+						//printf("not TFO\n");
 					    	epipedo = hg->level;
 					    	gatepos = hg->level_pos;
 
@@ -291,6 +294,9 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 					    		pos = arr +j;
 					     		table[pos].offset = offset;
 					    		table[pos].input[k] = result_tables[epipedo][array+j].output;
+							table[pos].input[2] = 0;
+							table[pos].input[3] = 0;
+							//printf("%d",table[pos].input[k]);
 					    		table[pos].m0 = 1;
 					    		table[pos].m1 = 0;
 					    	}//end of patterns
@@ -307,6 +313,9 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 						    pos = arr + j;
 						    table[pos].offset = offset;
 						    table[pos].input[k] = fault_result_tables[epipedo][array+j].output;
+						    table[pos].input[2] = 0;
+						    table[pos].input[3] = 0;
+						    //printf("%d",table[pos].input[k]);
 						    table[pos].m0 = 1;
 						    table[pos].m1 = 0;
 						}//end of patterns
@@ -358,16 +367,16 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 	int counter = -1;
 	int epipedo, gatepos, array, arr, pos, offset;
 
-	printf("i am in detect\n");
+	//printf("i am in detect\n");
 
 	for (i = 0; i<total_faults; i++){
 		//already done
 		if ((fault_list[i].end == 1) ||(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO)) {
-			printf("Arxiko sfalma %s\n",fault_list[i].gate->symbol->symbol);
+			//printf("Arxiko sfalma %s\n",fault_list[i].gate->symbol->symbol);
 
 			while(!is_empty(fault_list[i].TFO_stack)){
 				cg = pop(fault_list[i].TFO_stack);
-				printf("lista %s\n",cg->symbol->symbol);
+				//printf("lista %s\n",cg->symbol->symbol);
 				offset = find_offset(cg);
 				counter++;
 
@@ -391,7 +400,9 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 				//pare ta apotelesmata kai valta ston pinaka detect
 				for (k = 0; k<cg->ninput; k++) {
 					hg = cg->inlis[k];
+					//printf("read inputs %s\n",hg->symbol->symbol);
 					if(hg->TFO_list[i] != 1){
+						//printf("not TFO\n");
 						//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
 						epipedo = hg->level;
 						gatepos = hg->level_pos;
@@ -407,12 +418,16 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 							pos = arr + j;
 							dtable[pos].offset = offset;
 							dtable[pos].input[k] = result_tables[epipedo][array+j].output;
+							dtable[pos].input[2] = 0;
+							dtable[pos].input[3] = 0;
+							//printf("%d",dtable[pos].input[k]);
 							//mallon prepei na bgoun
 							dtable[pos].m0 = 1;
 							dtable[pos].m1 = 0;
 						}//end for patterns
 					}
 					else{
+						//printf("TFO!!\n");
 						epipedo = hg->fault_level[i];
 						gatepos = hg->flevel_pos[i];
 
@@ -425,6 +440,9 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 							pos = arr + j;
 							dtable[pos].offset = offset;
 							dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
+							dtable[pos].input[2] = 0;
+							dtable[pos].input[3] = 0;
+							//printf("%d",dtable[pos].input[k]);
 							dtable[pos].m0 = 1;
 							dtable[pos].m1 = 0;
 						}//end for patterns

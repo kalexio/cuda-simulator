@@ -34,7 +34,7 @@ __global__ void fault_injection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_re
 		THREADFAULTYPE data = dev_table[tid];
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
 		int output = tex1Dfetch(texLUT,index);
-		dev_res[tid].output = (output & data.m0)||data.m1;
+		dev_res[tid].output = (output && data.m0) || data.m1;
 	}
 }
 
@@ -43,9 +43,10 @@ __global__ void fault_detection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_re
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		THREADFAULTYPE data = dev_table[tid];
+		RESULTYPE data1 = Good[tid];
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
 		int output = tex1Dfetch(texLUT,index);
-		int output1 = Good[tid].output;
+		int output1 = data1.output;
 		dev_res[tid].output = output ^ output1;
 	}
 }
@@ -59,7 +60,7 @@ extern "C" void dummy_gpu(int level){
 	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
 	int length = patterns*levels[level];
 	//total=total+length;
-	//printf("Length is %d\n",total);
+	//printf("Length for logic sim epipedo %d %d\n",level,length);
 
 	//device_allocations();
 
@@ -96,7 +97,7 @@ extern "C" void dummy_gpu2(int level){
 	int length = no_po_faults*patterns;
 	if (level > 0) length = next_level_length * patterns;
 	//total=total+length;
-	printf("CUDA length is %d\n",length);
+	//printf("CUDA2 length gia epipedo %d %d\n",level,length);
 
 	//copy from Ram to device
 	HANDLE_ERROR( cudaMemcpy(dev_table2, fault_tables[level], length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
@@ -112,13 +113,13 @@ extern "C" void dummy_gpu2(int level){
 	}
    // printf("The number of blocks %d\n",blocks);
 	fault_injection_kernel<<<blocks,threads>>>(dev_table2,dev_res,length);
-
+	
 
 	HANDLE_ERROR( cudaMemcpy(fault_result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
 
     //for (i = 0; i<length; i++ )
-    	//printf("%d",fault_result_tables[i]);
+    	//printf("%d",fault_result_tables[level][i]);
 }
 
 
@@ -129,9 +130,9 @@ extern "C" void dummy_gpu3(){
 	int threads;
 
 	int length = detect_index*patterns;
-	printf("CUDA3 length is %d\n",length);
+	//printf("CUDA3 length is %d\n",length);
 
-	printf("I am here\n");
+	//printf("I am here\n");
 	//copy from Ram to device
 	HANDLE_ERROR( cudaMemcpy(dev_table3, detect_tables, length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
 	HANDLE_ERROR( cudaMemcpy(Goodsim, GoodSim, length*sizeof(int), cudaMemcpyHostToDevice));
@@ -151,9 +152,12 @@ extern "C" void dummy_gpu3(){
 
 	HANDLE_ERROR( cudaMemcpy(Final, dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
 
+    //for(i = 0; i<length; i++)printf("%d",GoodSim[i]);
+
+    //printf("\n");
 
     //for (i = 0; i<length; i++ )
-    	//printf("%d",fault_result_tables[i]);
+    	//printf("%d",Final[i]);
 }
 
 
@@ -183,7 +187,7 @@ extern "C" void device_allocations()
 
 extern "C" void device_allocations2()
 {
-	size_t size = 1000000;
+	size_t size = 100000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 

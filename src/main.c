@@ -174,6 +174,12 @@ int main (int argc, char* const argv[])
 	create_fault_list ();
 	//print_fault_list();
 	//mnhmh sth RAM gia ta arxika sfalmata
+
+
+	/* Start the timer */
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
 	allocate_cuda_faultables();
 
 	allocate_TFO_lists();
@@ -181,8 +187,17 @@ int main (int argc, char* const argv[])
 	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
 	init_faultable(fault_tables[0]);
 
+	gettimeofday(&tv,NULL);
+    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
+    total=(u2-u1);
+
 	//mnhmh sto GPU
 	device_allocations2();
+
+	/* Start the timer */
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
 	//ektelesh 1ou epipedou
 	dummy_gpu2(0);
@@ -199,23 +214,49 @@ int main (int argc, char* const argv[])
 
 	for (k = 1; k<maxlevel-2; k++) {
 		next_level_length = compute_length();
-		printf("plhthos %d\n",next_level_length*patterns);
+		//printf("plhthos %d\n",next_level_length*patterns);
 		allocate_next_level(next_level_length, k);
 		init_anylevel_faultable(k, fault_tables[k]);
 		//printf("data for %d level ready\n",k);
 		dummy_gpu2(k);
 	}
 
+	gettimeofday(&tv,NULL);
+    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    total = total + (u2-u1);
+
 	device_deallocations2();
+
+	/* Start the timer */
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
 	detect_index = compute_detected();
-	printf("Length of detetct array %d\n",detect_index);
+	//printf("Length of detetct array %d\n",detect_index);
 	allocate_detect_goodsim(detect_index);
 	prepare_detection(GoodSim, detect_tables);
+
+	gettimeofday(&tv,NULL);
+    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    total = total + (u2-u1);
+
 	//Call the detetction
 	device_allocations3();
+
+	/* Start the timer */
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
 	dummy_gpu3();
 
+	gettimeofday(&tv,NULL);
+    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    total = total + (u2-u1);
 	device_deallocations3();
+
+    printf("\nCPU Time for logic simulation: %f usec\n", total);
+
+
 	//gettimeofday(&tv,NULL);
    	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 

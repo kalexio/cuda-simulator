@@ -28,7 +28,8 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 		//printf("symbol = %s\n",symbol);
 		patterns++;
 	}
-   
+    //printf(" patterns %d\n",patterns);
+
 	/* Close the vectors file for opening it again*/
     fclose(vectors_fd);
     
@@ -39,7 +40,7 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 		test_sets[i] = xmalloc(levels[0]*sizeof(int));
 	}
 	
-	
+
 	
 	
 /***********************************************************************
@@ -73,6 +74,7 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
  * 						Read as ints
  * ********************************************************************/
 
+
     /* Open it again and read from the start */
     vectors_fd = fopen (vectors_name, "r");
 	if (vectors_fd == NULL)
@@ -95,7 +97,7 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 				break;
 		}
 	}  
-	
+
 	/* Close the vectors file */
 	fclose (vectors_fd);  
 	
@@ -138,6 +140,7 @@ void allocate_cudatables ()
 		cuda_tables[i] = xmalloc(patterns*levels[i]*sizeof(THREADTYPE));
 		result_tables[i] = xmalloc(patterns*levels[i]*sizeof(RESULTYPE));
 	}
+	printf("End of allocatuion\n");
 	
 }
 
@@ -166,6 +169,7 @@ void init_first_level (THREADPTR table)
 		//printf("\n");
 	
 	}
+	printf("End of init_first level logic sim\n");
 }
 
 
