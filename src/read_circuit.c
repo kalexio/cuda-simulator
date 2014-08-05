@@ -178,6 +178,7 @@ int read_circuit (FILE *circuit_fd)
     
 	for (i = 0; i<nog; i++) {
 		cg = net[i];
+		cg->offset = find_offset(cg);
 
 		for (j = 0; j<cg->ninput; j++) {
 			cg->inlis[j]->outlis[(cg->inlis[j]->noutput)++] = cg;

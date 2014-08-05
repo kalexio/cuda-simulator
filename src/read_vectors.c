@@ -28,7 +28,7 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 		//printf("symbol = %s\n",symbol);
 		patterns++;
 	}
-    //printf(" patterns %d\n",patterns);
+    printf(" patterns %d\n",patterns);
 
 	/* Close the vectors file for opening it again*/
     fclose(vectors_fd);
@@ -240,7 +240,8 @@ void init_any_level(int lev,THREADPTR table)
 	//for all the gates of the lev level
 	for (i = 0; i<=event_list[lev].last; i++) {
 		cg = event_list[lev].list[i];
-		offset = find_offset(cg);
+
+		//offset = find_offset(cg);
 		//printf("%s\n",cg->symbol->symbol);
 		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
 
@@ -256,7 +257,7 @@ void init_any_level(int lev,THREADPTR table)
 			//for all the patterns for this gate
 			for ( j = 0; j<patterns; j++) {
 				pos = arr + j;
-				table[pos].offset = offset;
+				table[pos].offset = cg->offset;
 				table[pos].input[k] = result_tables[epipedo][array+j].output;
 			}
 		}

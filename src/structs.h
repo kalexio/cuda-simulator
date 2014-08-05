@@ -14,6 +14,7 @@ typedef struct HASH {
 typedef struct GATE {
 	int level_pos;
 	int index;
+	int offset;
     int fn;
     short level;
     int changed;

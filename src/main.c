@@ -44,7 +44,8 @@ int main (int argc, char* const argv[])
 	char c;
 	nodummy = 0;
     program_name = argv[0];
-	double u1, u2, total = 0;
+	double u1, u2, u3, u4, total  =  0;
+	double total1 = 0;
 	struct timeval tv;
     
     /*******************************************************************
@@ -189,6 +190,7 @@ int main (int argc, char* const argv[])
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    printf("Fisrt level of scheduling completed %f\n",(u2-u1));
 
     total=(u2-u1);
 
@@ -205,7 +207,9 @@ int main (int argc, char* const argv[])
 	//ypologise kwno
 	//allocate_TFO_lists();
 	compute_TFO();
-
+	gettimeofday(&tv,NULL);
+    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    printf("Fisrt level of fault sim completed %f\n",(u2-u1));
 	//kaleitai prin apo kathe init any level
 	//next_level_length = compute_length();
 	//printf("plhthos %d\n",next_level_length);
@@ -213,17 +217,26 @@ int main (int argc, char* const argv[])
 	//init_anylevel_faultable(1, fault_tables[1], detect_tables);
 
 	for (k = 1; k<maxlevel-2; k++) {
+
 		next_level_length = compute_length();
 		//printf("plhthos %d\n",next_level_length*patterns);
 		allocate_next_level(next_level_length, k);
 		init_anylevel_faultable(k, fault_tables[k]);
 		//printf("data for %d level ready\n",k);
+
+		/* Start the timer */
+		gettimeofday(&tv,NULL);
+	   	u3 = tv.tv_sec*1.0e6 + tv.tv_usec;
 		dummy_gpu2(k);
+		gettimeofday(&tv,NULL);
+	    u4 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	    total1 = total1 + (u4-u3);
+	    printf("xronos gia CUDA %f\n",total1);
 	}
 
-	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total = total + (u2-u1);
+	//gettimeofday(&tv,NULL);
+    //u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+    //total = total + (u2-u1);
 
 	device_deallocations2();
 
@@ -238,7 +251,8 @@ int main (int argc, char* const argv[])
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total = total + (u2-u1);
+    total =  (u2-u1);
+    printf("Prepared the detectuion schedule %f\n",total);
 
 	//Call the detetction
 	device_allocations3();
@@ -247,14 +261,15 @@ int main (int argc, char* const argv[])
 	gettimeofday(&tv,NULL);
    	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
+   	printf("hell dummy3\n");
 	dummy_gpu3();
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total = total + (u2-u1);
+    total =  (u2-u1);
 	device_deallocations3();
 
-    printf("\nCPU Time for logic simulation: %f usec\n", total);
+    printf("\nCPU Time for fault simulation: %f usec\n", total);
 
 
 	//gettimeofday(&tv,NULL);

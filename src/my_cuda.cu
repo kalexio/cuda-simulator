@@ -200,6 +200,7 @@ extern "C" void device_allocations2()
 extern "C" void device_allocations3()
 {
 	int length = detect_index*patterns;
+	//int length =100000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 

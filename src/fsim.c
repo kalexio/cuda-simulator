@@ -59,7 +59,8 @@ void init_faultable(THREADFAULTPTR table)
 		//vriskw to offset ths pulhs kai ta injection bits eite einai PI PO etc
 		cg = fault_list[i].gate;
 		cg->TFO_list[i] = 1;
-		offset = find_offset(cg);
+		//offset = find_offset(cg);
+
 		if (fault_list[i].SA == 0) {inj_bit0 = 0; inj_bit1 = 0;}
 		else inj_bit1 = 1;
 		if ( cg->outlis[0]->fn != PO ) {
@@ -84,7 +85,7 @@ void init_faultable(THREADFAULTPTR table)
 
 					for (j = 0; j<patterns; j++){
 						pos = arr + j;
-						table[pos].offset = offset;
+						table[pos].offset = cg->offset;
 						table[pos].m0 = inj_bit0;
 						table[pos].m1 = inj_bit1;
 						table[pos].input[k] = result_tables[epipedo][array+j].output;
@@ -100,7 +101,7 @@ void init_faultable(THREADFAULTPTR table)
 				//printf("I am a PI read the input vector\n");
 				for (j = 0; j<patterns; j++){
 					pos = arr + j;
-					table[pos].offset = offset;
+					table[pos].offset = cg->offset;
 					//j deixnei grammes osa ta patterns , i diexnei sthlh dhladh poia pulh
 					table[pos].input[0] = test_sets[j][gatepos];
 					//printf("%d",test_sets[j][gatepos]);
@@ -272,7 +273,9 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 					fault_list[i].affected_gates--;
 					cg = pop(fault_list[i].TFO_stack);
 					counter++;
-					offset = find_offset(cg);	
+					//offset = find_offset(cg);
+
+
 					//printf("offset %d\n",offset);
 					cg->fault_level[i] = loop;
 					cg->flevel_pos[i] = counter;
@@ -292,7 +295,7 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 
 					    	for (j = 0; j<patterns; j++){
 					    		pos = arr +j;
-					     		table[pos].offset = offset;
+					     		table[pos].offset = cg->offset;
 					    		table[pos].input[k] = result_tables[epipedo][array+j].output;
 							table[pos].input[2] = 0;
 							table[pos].input[3] = 0;
@@ -311,7 +314,7 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 
 						for (j = 0; j<patterns; j++){
 						    pos = arr + j;
-						    table[pos].offset = offset;
+						    table[pos].offset = cg->offset;
 						    table[pos].input[k] = fault_result_tables[epipedo][array+j].output;
 						    table[pos].input[2] = 0;
 						    table[pos].input[3] = 0;
@@ -377,7 +380,9 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 			while(!is_empty(fault_list[i].TFO_stack)){
 				cg = pop(fault_list[i].TFO_stack);
 				//printf("lista %s\n",cg->symbol->symbol);
-				offset = find_offset(cg);
+				//offset = find_offset(cg);
+
+
 				counter++;
 
 				//vres th thesh ths pulhs eksodou apo to logic sim
@@ -416,7 +421,7 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 
 						for (j = 0; j<patterns; j++){
 							pos = arr + j;
-							dtable[pos].offset = offset;
+							dtable[pos].offset = cg->offset;
 							dtable[pos].input[k] = result_tables[epipedo][array+j].output;
 							dtable[pos].input[2] = 0;
 							dtable[pos].input[3] = 0;
@@ -438,7 +443,7 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 
 						for (j = 0; j<patterns; j++){
 							pos = arr + j;
-							dtable[pos].offset = offset;
+							dtable[pos].offset = cg->offset;
 							dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
 							dtable[pos].input[2] = 0;
 							dtable[pos].input[3] = 0;
