@@ -62,39 +62,39 @@ int main (int argc, char* const argv[])
     gettimeofday(&tv,NULL);
    	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
-	/* Read the circuit file and make the structures */
-    if (read_circuit (circuit_fd) < 0)
-        system_error ("read_circuit");
-    fclose (circuit_fd);
+		/* Read the circuit file and make the structures */
+    	if (read_circuit (circuit_fd) < 0)
+    		system_error ("read_circuit");
+    	fclose (circuit_fd);
     
-    if (nog<=0 || nopi<=0 || nopo<=0) {
-		fprintf(stderr,"Error in circuit file: #PI=%d, #PO=%d, #GATES=%d\n",nopi,nopo,nog);
-		abort();
-	}
+    	if (nog<=0 || nopi<=0 || nopo<=0) {
+    		fprintf(stderr,"Error in circuit file: #PI=%d, #PO=%d, #GATES=%d\n",nopi,nopo,nog);
+    		abort();
+    	}
     
-    /* Add a gate for the output stage as you did for the input stage */
-    nodummy = add_PO();
+    	/* Add a gate for the output stage as you did for the input stage */
+    	nodummy = add_PO();
     
-    /* Compute the levels of the circuit */
-    allocate_stacks();
-    maxlevel = compute_level();
-    /* Place the PO at the last level */
-	place_PO();
+    	/* Compute the levels of the circuit */
+    	allocate_stacks();
+    	maxlevel = compute_level();
+    	/* Place the PO at the last level */
+    	place_PO();
 
-    printf("the max level = %d\n",maxlevel);
+    	printf("the max level = %d\n",maxlevel);
     
-    /* Computes the level of each gate */
-    allocate_event_list();
-	/* Levelize the circuit */
-    levelize();
-    //xfree(event_list); 
+    	/* Computes the level of each gate */
+    	allocate_event_list();
+    	/* Levelize the circuit */
+    	levelize();
+    	//xfree(event_list);
     
     /* Stop the timer */
     gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
     total=(u2-u1);
     printf("Time for construction of data structures: %f usec\n", total);
-    total= 0;
+    total = 0;
     
     
     
@@ -109,9 +109,7 @@ int main (int argc, char* const argv[])
 	if (vectors_fd == NULL)
 		system_error ("fopen");
 		
-	/* Start the timer */	
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
 
 	/* Read the vector file and put the input values to the INPUT GATES */
 	if (read_vectors (vectors_fd,vectors_name) != 0)
@@ -122,18 +120,20 @@ int main (int argc, char* const argv[])
 	/*******************************************************************
 	 * 						Logic simulation
 	 * ****************************************************************/
+	/* Start the timer  for the Logic simulation*/
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 	
-	
-	/*logic simulation here for cuda*/
-	LUT = create_lut (LUT);
-	device_allocations();
-	dummy_gpu(0);
-	//printf("\ngpu data from first level computed ready\n");
-	for (k = 1; k<maxlevel; k++) {
-		init_any_level(k,cuda_tables[k]);
-		//printf("data for %d level ready\n",k);
-		dummy_gpu(k);
-	}
+		/*logic simulation here for cuda*/
+   		LUT = create_lut (LUT);
+   		device_allocations();
+   		dummy_gpu(0);
+   		//printf("\ngpu data from first level computed ready\n");
+   		for (k = 1; k<maxlevel; k++) {
+   			init_any_level(k,cuda_tables[k]);
+   			//printf("data for %d level ready\n",k);
+   			dummy_gpu(k);
+   		}
 
 
 	//logic_sim();
@@ -151,11 +151,12 @@ int main (int argc, char* const argv[])
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
     total=(u2-u1);
 
     printf("\nCPU Time for logic simulation: %f usec\n", total);
     total= 0;
+
+
     device_deallocations();
 
     //print_logic_sim();
@@ -177,22 +178,23 @@ int main (int argc, char* const argv[])
 	//mnhmh sth RAM gia ta arxika sfalmata
 
 
-	/* Start the timer */
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
 	allocate_cuda_faultables();
 
 	allocate_TFO_lists();
 
-	//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
-	init_faultable(fault_tables[0]);
+	/* Start the timer for the fault simulation*/
+	gettimeofday(&tv,NULL);
+   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+
+		//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
+		init_faultable(fault_tables[0]);
 
 	gettimeofday(&tv,NULL);
     u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    printf("Fisrt level of scheduling completed %f\n",(u2-u1));
-
     total=(u2-u1);
+    printf("Fisrt level of scheduling completed %f\n",total);
+    total = 0;
 
 	//mnhmh sto GPU
 	device_allocations2();
@@ -201,20 +203,23 @@ int main (int argc, char* const argv[])
 	gettimeofday(&tv,NULL);
    	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
-	//ektelesh 1ou epipedou
-	dummy_gpu2(0);
+		//ektelesh 1ou epipedou
+		dummy_gpu2(0);
 
-	//ypologise kwno
-	//allocate_TFO_lists();
-	compute_TFO();
+		//ypologise kwno
+		//allocate_TFO_lists();
+		compute_TFO();
 	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    printf("Fisrt level of fault sim completed %f\n",(u2-u1));
+	u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	total=(u2-u1);
+	printf("Fisrt level of fault sim completed %f\n",total);
+	total = 0;
 	//kaleitai prin apo kathe init any level
 	//next_level_length = compute_length();
 	//printf("plhthos %d\n",next_level_length);
 	//allocate_next_level(next_level_length, 1);
 	//init_anylevel_faultable(1, fault_tables[1], detect_tables);
+
 
 	for (k = 1; k<maxlevel-2; k++) {
 
@@ -225,6 +230,7 @@ int main (int argc, char* const argv[])
 		//printf("data for %d level ready\n",k);
 
 		/* Start the timer */
+
 		gettimeofday(&tv,NULL);
 	   	u3 = tv.tv_sec*1.0e6 + tv.tv_usec;
 		dummy_gpu2(k);

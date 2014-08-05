@@ -24,6 +24,8 @@ void dummy_gpu3();
 void device_allocations();
 void device_allocations2();
 void device_allocations3();
+void dealloc();
+void alloc();
 void device_deallocations();
 void device_deallocations2();
 void device_deallocations3();

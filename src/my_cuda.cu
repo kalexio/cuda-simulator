@@ -154,7 +154,7 @@ extern "C" void dummy_gpu3(){
 
     //for(i = 0; i<length; i++)printf("%d",GoodSim[i]);
 
-    //printf("\n");
+    printf("length is %d\n",length);
 
     //for (i = 0; i<length; i++ )
     	//printf("%d",Final[i]);
@@ -197,6 +197,13 @@ extern "C" void device_allocations2()
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
 }
 
+
+extern "C" void alloc(){
+	size_t size = 100000000;
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADTYPE)));
+}
+
+
 extern "C" void device_allocations3()
 {
 	int length = detect_index*patterns;
@@ -219,6 +226,11 @@ extern "C" void device_deallocations()
     HANDLE_ERROR( cudaFree(dev_res));
     //HANDLE_ERROR( cudaDeviceReset());
 
+}
+
+
+extern "C" void dealloc(){
+	HANDLE_ERROR( cudaFree(dev_table2));
 }
 
 
