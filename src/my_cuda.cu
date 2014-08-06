@@ -17,7 +17,7 @@ int *cuda_vecs = NULL;
 int Cuda_index = 0;
 //int total=0;
 
-
+											//(dev_table, cuda_vecs, offset, patterns, i);
 __global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
@@ -47,13 +47,14 @@ __global__ void clean_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_res, int of
 	}
 }
 
+
 __global__ void fill_struct_kernel1(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		//THREADTYPE data = dev_table[tid];
 		int loc_pos = pos*length;
 		dev_table[tid+loc_pos].offset = offset;
-		dev_table[tid+loc_pos].input[k] = dev_res[read_mem].output;
+		dev_table[tid+loc_pos].input[k] = dev_res[tid+read_mem].output;
 		dev_table[tid+loc_pos].m0 = 1;
 		dev_table[tid+loc_pos].m1 = 0;
 	}
@@ -142,7 +143,7 @@ extern "C" void device_allocations()
 extern "C" void init_first_level()
 {
 	int offset, i, threads, blocks;
-	int length = patterns * levels[0];
+	int length;
 	//GATEPTR cg;
 
 	threads = 128;
@@ -152,24 +153,22 @@ extern "C" void init_first_level()
 		blocks = ( patterns + (threads-1))/threads;
 	}
 
+	offset = PI;
 	for (i = 0; i<levels[0]; i++) {
 		//call kernel for each gate
 		//cg = event_list[0].list[i];
-		offset = PI;
 		//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
 
-		//fill the first level of the array
 		fill_struct_kernel<<<blocks,threads>>>(dev_table, cuda_vecs, offset, patterns, i);
 	}
 
 	threads = 128;
+	length = patterns * levels[0];
 	blocks = ( length + (threads-1))/threads;
 	if (blocks < 200) {
 		threads = 64;
 		blocks = ( length + (threads-1))/threads;
 	}
-
-	//do the first logic sim
 	logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
 	Cuda_index = length;
 }
@@ -190,8 +189,6 @@ extern "C" void init_any_level()
 	//Gia ola ta epipeda tou kyklwmatos
 	for (i = 1; i< (maxlevel-1); i++){
 
-		length = patterns * levels[i];
-
 		threads = 128;
 		blocks = ( patterns + (threads-1))/threads;
 		if (blocks < 200) {
@@ -202,39 +199,30 @@ extern "C" void init_any_level()
 		for (j = 0; j< levels[i]; j++){
 			cg = event_list[i].list[j];
 			offset = find_offset(cg);
-			//gia na to dwsoyme ston kernel fill
 			pos++;
-			printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
+			//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
 			for (k = 0; k<cg->ninput; k++) {
 				hg = cg->inlis[k];
-				//epipedo = hg->level;
-				//gatepos = hg->level_pos;
-				//array1 = 0;
-				//for (l = 0; l< epipedo; l++){
-					//array1 = array1 + levels[l]*patterns;
-				//}
-				//array1 = array1 + gatepos*patterns;
 				array = hg->index * patterns; //<-----------------
-				//if (array1 != array) printf("Kati paizei!\n");
-				//clean_kernel<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
 				fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
 			}
 		}
 
 		threads = 128;
+		length = patterns * levels[i];
 		blocks = ( length + (threads-1))/threads;
 		if (blocks < 200) {
 			threads = 64;
 			blocks = ( length + (threads-1))/threads;
 		}
 
-		//do the first logic sim
 		logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
 		Cuda_index = Cuda_index + length;
+		//printf("%d cuda length\n",Cuda_index);
 
 	}
 
-	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, patterns*nog* sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
 }
 
 

@@ -119,6 +119,8 @@ int main (int argc, char* const argv[])
 	//Create the LUT table
 	LUT = create_lut (LUT);
 	
+	Compute_gates();
+
 	//allocation of memory for:
 	//1. LUT, 2. Cuda vectors, 3.Cuda results, 4.Cuda structs
 	//and memcpy for LUT and Cuda vectors
@@ -133,7 +135,7 @@ int main (int argc, char* const argv[])
 	//kernels the whole Logic simulation
 	init_any_level();
 
-	for (i = 0; i< patterns*nog; i++) printf("%d",result_tables[i]);
+	//for (i = 0; i< 594; i++) printf("%d",result_tables[i]);
 
 	/*******************************************************************
 	 * 						Logic simulation

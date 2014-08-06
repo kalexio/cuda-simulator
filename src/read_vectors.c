@@ -9,6 +9,7 @@ int **test_sets;
 int *cuda_vectors;
 int patterns;
 int maxgates;
+int total_gates = 0;
 THREADTYPE **cuda_tables;
 THREADFAULTYPE **cuda_table;
 RESULTYPE *result_tables;
@@ -108,7 +109,11 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 }
 
 
+void Compute_gates(){
+	int i;
 
+
+}
 
 
 
