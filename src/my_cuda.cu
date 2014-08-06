@@ -14,34 +14,50 @@ RESULTPTR dev_res = NULL;
 //RESULTPTR Goodsim = NULL;
 int *dev_LUT = NULL;
 int *cuda_vecs = NULL;
+int Cuda_index = 0;
 //int total=0;
 
 
-__global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int offset, int length){
+__global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		//THREADTYPE data = dev_table[tid];
-		dev_table[tid].offset = offset;
-		dev_table[tid].input[0] = Vectors[tid];
+		int loc_pos = pos*length;
+		dev_table[tid+loc_pos].offset = offset;
+		dev_table[tid+loc_pos].input[0] = Vectors[tid];
 		//an douleyei to memset tote poulo ayta
 		//dev_table[tid].input[1] = 0;
 		//dev_table[tid].input[2] = 0;
 		//dev_table[tid].input[3] = 0;
-		dev_table[tid].m0 = 1;
-		dev_table[tid].m1 = 0;
+		dev_table[tid+loc_pos].m0 = 1;
+		dev_table[tid+loc_pos].m1 = 0;
 	}
 }
 
 
-__global__ void logic_simulation_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_res,int length){
+__global__ void fill_struct_kernel1(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		//THREADTYPE data = dev_table[tid];
+		int loc_pos = pos*length;
+		dev_table[tid+loc_pos].offset = offset;
+		dev_table[tid+loc_pos].input[k] = dev_res[read_mem].output;
+		dev_table[tid+loc_pos].m0 = 1;
+		dev_table[tid+loc_pos].m1 = 0;
+	}
+}
+
+
+
+__global__ void logic_simulation_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_res, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	//elegxos an perasoume ta osa steilame
 	//xreiazomaste kai allon ena elegxo an ayta pou exoume steilei einai pio polla apo ta nhmata
 	if (tid < length) {
-		THREADFAULTYPE data = dev_table[tid];
+		THREADFAULTYPE data = dev_table[tid+pos];
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
 		int output = tex1Dfetch(texLUT,index);
-		dev_res[tid].output = output;
+		dev_res[tid+pos].output = output;
 	}
 }
 
@@ -100,6 +116,8 @@ extern "C" void device_allocations()
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
 
+	//HANDLE_ERROR( cudaMemcpy(cuda_table, dev_table, size*sizeof(THREADFAULTYPE),cudaMemcpyDeviceToHost ));
+
 	//fill and bind the texture
 	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
 	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
@@ -108,12 +126,12 @@ extern "C" void device_allocations()
 }
 
 
+
 extern "C" void init_first_level()
 {
 	int offset, i, threads, blocks;
 	int length = patterns * levels[0];
 	//GATEPTR cg;
-
 
 	threads = 128;
 	blocks = ( patterns + (threads-1))/threads;
@@ -128,41 +146,80 @@ extern "C" void init_first_level()
 		offset = PI;
 		//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
 
-		//fill the firts level of the array
-		fill_struct_kernel<<<blocks,threads>>>(dev_table, cuda_vecs, offset, patterns);
+		//fill the first level of the array
+		fill_struct_kernel<<<blocks,threads>>>(dev_table, cuda_vecs, offset, patterns, i);
+	}
+
+	threads = 128;
+	blocks = ( length + (threads-1))/threads;
+	if (blocks < 200) {
+		threads = 64;
+		blocks = ( length + (threads-1))/threads;
 	}
 
 	//do the first logic sim
-	logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length);
+	logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
+	Cuda_index = length;
 }
+
 
 
 extern "C" void init_any_level()
 {
 	int i, j, k, offset;
+	int epipedo, gatepos, array;
+	int threads, blocks;
 	int pos = 0;
+	int length;
 	GATEPTR cg, hg;
 
+	pos = levels[0];
+
 	//Gia ola ta epipeda tou kyklwmatos
-	//for (i = 1; i< (maxlevel-1); i++){
+	for (i = 1; i< (maxlevel-1); i++){
 
-	//}
 
-	for (j = 0; j< levels[1]; j++){
-		cg = event_list[1].list[j];
+
+	length = patterns * levels[i];
+
+	threads = 128;
+	blocks = ( patterns + (threads-1))/threads;
+	if (blocks < 200) {
+		threads = 64;
+		blocks = ( patterns + (threads-1))/threads;
+	}
+
+	for (j = 0; j< levels[i]; j++){
+		cg = event_list[i].list[j];
 		offset = find_offset(cg);
-		pos = pos + patterns*levels[0];
+		//gia na to dwsoyme ston kernel fill
+		pos++;
 		//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
 		for (k = 0; k<cg->ninput; k++) {
-			//hg = cg->inlis[k];
-			//epipedo = hg->level;
-			//gatepos = hg->level_pos;
+			hg = cg->inlis[k];
+			array = hg->index * patterns;
 
+			fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
 		}
 	}
 
+	threads = 128;
+	blocks = ( length + (threads-1))/threads;
+	if (blocks < 200) {
+		threads = 64;
+		blocks = ( length + (threads-1))/threads;
+	}
 
+	//do the first logic sim
+	logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
+	Cuda_index = Cuda_index + length;
+
+	}
+
+	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, patterns*nog* sizeof(int) , cudaMemcpyDeviceToHost));
 }
+
+
 
 
 

@@ -10,7 +10,8 @@ int *cuda_vectors;
 int patterns;
 int maxgates;
 THREADTYPE **cuda_tables;
-RESULTYPE **result_tables;
+THREADFAULTYPE **cuda_table;
+RESULTYPE *result_tables;
 
 int read_vectors (FILE *vectors_fd,const char* vectors_name) 
 {
@@ -96,7 +97,8 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 	/*Test the cuda vector
 	for (i = 0; i<patterns*levels[0]; i++) printf("%d",cuda_vectors[i]); */
 	
-
+	cuda_table = xmalloc (  patterns*nog*sizeof(THREADFAULTYPE));
+	result_tables = xmalloc (  patterns*nog*sizeof(RESULTYPE));
 	//allocate_and_init ();
 	//allocate_cudatables ();
 	//init_first_level (cuda_tables[0]);

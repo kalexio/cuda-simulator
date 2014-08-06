@@ -101,13 +101,14 @@ extern char getvector (FILE* , char*);
 extern int read_vectors (FILE *,const char*);
 extern void allocate_and_init ();
 //extern int find_offset (GATEPTR);
+extern THREADFAULTYPE **cuda_table;
 extern char **test_set;
 extern int **test_sets;
 extern int *cuda_vectors; //an array with all the vectors ana sthlh kai meta ana grammh
 extern int patterns;  //number of vectors for simulation
 extern int maxgates;  //number of max gates at any level
 THREADTYPE **cuda_tables;
-RESULTYPE **result_tables;
+RESULTYPE *result_tables;
 extern void allocate_cudatables ();
 //extern void init_first_level (THREADPTR);
 //extern void init_any_level(int,THREADPTR);

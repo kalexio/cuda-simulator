@@ -124,10 +124,16 @@ int main (int argc, char* const argv[])
 	//and memcpy for LUT and Cuda vectors
 	device_allocations();
 
+	//for testing the cudamemset
+	//for (i = 0; i< 1000; i++) printf("%d",cuda_table[i]);
+
 	//kernels for filling the structs and do the first level logic sim
 	init_first_level();
 
+	//kernels the whole Logic simulation
 	init_any_level();
+
+	//for (i = 0; i< patterns*nog; i++) printf("%d",result_tables[i]);
 
 	/*******************************************************************
 	 * 						Logic simulation

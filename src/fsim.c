@@ -89,7 +89,7 @@ void init_faultable(THREADFAULTPTR table)
 						table[pos].offset = cg->offset;
 						table[pos].m0 = inj_bit0;
 						table[pos].m1 = inj_bit1;
-						table[pos].input[k] = result_tables[epipedo][array+j].output;
+						//table[pos].input[k] = result_tables[epipedo][array+j].output;
 						table[pos].input[2] = 0;
 						table[pos].input[3] = 0;
 					}//end for patterns
@@ -297,7 +297,7 @@ void init_anylevel_faultable(int loop, THREADFAULTPTR table)
 					    	for (j = 0; j<patterns; j++){
 					    		pos = arr +j;
 					     		table[pos].offset = cg->offset;
-					    		table[pos].input[k] = result_tables[epipedo][array+j].output;
+					    		//table[pos].input[k] = result_tables[epipedo][array+j].output;
 							table[pos].input[2] = 0;
 							table[pos].input[3] = 0;
 							//printf("%d",table[pos].input[k]);
@@ -399,7 +399,7 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 
 				for (j = 0; j<patterns; j++){
 					pos = arr + j;
-					goodtable[pos].output = result_tables[epipedo][array+j].output;
+					//goodtable[pos].output = result_tables[epipedo][array+j].output;
 					//printf("%d",goodtable[pos].output);
 				}//end for patterns
 
@@ -423,7 +423,7 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 						for (j = 0; j<patterns; j++){
 							pos = arr + j;
 							dtable[pos].offset = cg->offset;
-							dtable[pos].input[k] = result_tables[epipedo][array+j].output;
+							//dtable[pos].input[k] = result_tables[epipedo][array+j].output;
 							dtable[pos].input[2] = 0;
 							dtable[pos].input[3] = 0;
 							//printf("%d",dtable[pos].input[k]);
