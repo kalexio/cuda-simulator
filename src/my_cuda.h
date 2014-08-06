@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 
+
 static void HandleError( cudaError_t err,const char *file,int line ) {
     if (err != cudaSuccess) {
         printf( "%s in %s at line %d\n", cudaGetErrorString( err ),
@@ -18,10 +19,18 @@ static void HandleError( cudaError_t err,const char *file,int line ) {
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
 
+void device_allocations();
+void init_first_level();
+void init_any_level();
+int find_offset(GATEPTR);
+
+
+
+
 void dummy_gpu(int);
 void dummy_gpu2(int);
 void dummy_gpu3();
-void device_allocations();
+
 void device_allocations2();
 void device_allocations3();
 void dealloc();

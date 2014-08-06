@@ -6,6 +6,7 @@
 
 char **test_set;
 int **test_sets;
+int *cuda_vectors;
 int patterns;
 int maxgates;
 THREADTYPE **cuda_tables;
@@ -15,20 +16,24 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 {
 	register char c;
 	int valid = FALSE;
-	int i;
-	//int j;
+	int i, j;
     char symbol[levels[0]];
     patterns = 0;
+    int counter= 0;;
 
 
-    //We have to find a better way to compute patterns <-----------------------------------------------------------------------------------
+    /*******************************************************************
+     *  Find the total number of patterns and allocate space for them
+     ******************************************************************/
+
     /* Finds the number of the patterns */
     while ((c = getvector (vectors_fd, symbol)) != EOF) {
 		//printf("len %d\n",strlen(symbol));
 		//printf("symbol = %s\n",symbol);
 		patterns++;
 	}
-    printf(" patterns %d\n",patterns);
+
+    printf("Number of patterns %d\n",patterns);
 
 	/* Close the vectors file for opening it again*/
     fclose(vectors_fd);
@@ -36,43 +41,15 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 	/* Allocate a table for preserving the test patterns */
     test_set = (char **)xmalloc(patterns*sizeof(char *));
     test_sets = (int **)xmalloc(patterns*sizeof(int *));
+    cuda_vectors = xmalloc( (patterns*levels[0]) * sizeof(int) );
     for ( i = 0; i < patterns; i++) {
 		test_sets[i] = xmalloc(levels[0]*sizeof(int));
 	}
 	
-
-	
-	
-/***********************************************************************
- * 					Read as chars
- * ********************************************************************/   
-    /* Open it again and read from the start */
-    //vectors_fd = fopen (vectors_name, "r");
-	//if (vectors_fd == NULL)
-		//system_error ("fopen");
     
-    
-    /* Reads the vectors into the test_set array as chars */
-    //patterns = 0;
-	//while ((c = getvector (vectors_fd, symbol)) != EOF) {
-		//printf("here patterns %d\n",patterns);
-		//test_set[patterns] = xmalloc((levels[0]+1)*sizeof(char));
-		//strcpy(test_set[patterns],symbol);
-		//printf("symbol = %s\n",test_set[patterns]);
-		//patterns++;
-	//}
-	
-	//printf("getvector patterns %d\n",patterns);
-	
-	/* Close the vectors file and open it again */
-    //fclose(vectors_fd);
-
-
-
-
-/***********************************************************************
- * 						Read as ints
- * ********************************************************************/
+    /***********************************************************************
+     * 			 Read as int the input vectors
+     * ********************************************************************/
 
 
     /* Open it again and read from the start */
@@ -100,30 +77,52 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 
 	/* Close the vectors file */
 	fclose (vectors_fd);  
-	
-	
-	//printf("getpatterns patterns %d\n",patterns);
-	
-	
+
+
+	//fill the cuda_vectors array
+	for (i = 0; i < levels[0]; i++) {
+		for ( j = 0; j < patterns; j++) {
+			cuda_vectors[counter] =  test_sets[j][i];
+			counter++;
+		}
+	}
+
 	/* Test the int reading vectors
 	for (i = 0; i < levels[0]; i++) {
 		for ( j = 0; j < patterns; j++) printf("%d",test_sets[j][i]);
 		printf("\n");
 	} */
 	
+	/*Test the cuda vector
+	for (i = 0; i<patterns*levels[0]; i++) printf("%d",cuda_vectors[i]); */
 	
-	
-	
-	
-	printf("End patterns %d\n",patterns);
+
 	//allocate_and_init ();
-	allocate_cudatables ();
-	init_first_level (cuda_tables[0]);
+	//allocate_cudatables ();
+	//init_first_level (cuda_tables[0]);
  
 	return 0;
 	
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 /////////////////////////////CUDA-area//////////////////////////////////
 void allocate_cudatables () 
 {
@@ -172,62 +171,6 @@ void init_first_level (THREADPTR table)
 	printf("End of init_first level logic sim\n");
 }
 
-
-
-
-/*void init_any_level(int lev,THREADPTR table)
-{
-	GATEPTR cg,hg,pg;
-	int i,j,k,l,gatepos,m;
-	register int pos;
-	int flag;
-	int epipedo;
-	int offset;
-
-	//for all the gates of the lev level
-	for (i = 0; i<=event_list[lev].last; i++) {
-		cg = event_list[lev].list[i];
-		//printf("%s\n",cg->symbol->symbol);
-		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
-
-		for (k = 0; k<cg->ninput; k++) {
-			flag = 0;
-			hg = cg->inlis[k];
-			//for (l = 0; l<=event_list[lev-1].last; l++) {
-			for (l = 0; l<nog; l++) {
-				//pg = event_list[lev-1].list[l];
-				pg = net[l];
-				if (pg->index == hg->index)  {
-					//printf("found\n");
-					epipedo = pg->level;
-					for (m = 0; m<=event_list[epipedo].last; m++) {
-						pg = event_list[epipedo].list[m];
-						if (pg->index == hg->index) gatepos = m;
-					}
-					flag = 1;
-					break;
-				}
-			}
-
-			if(flag==0) printf("not found\n");
-
-			///pio grhgora!
-			pos = i*patterns+0;
-			offset = find_offset(cg);
-
-			//for all the patterns for this gate
-			for ( j = 0; j<patterns; j++) {
-				pos = i*patterns + j;
-				//table[pos].offset = find_offset(cg);
-				table[pos].offset = offset;
-				//table[pos].count = 0;
-				table[pos].input[k] = result_tables[epipedo][gatepos*patterns+j].output;
-
-			}
-		}
-	}
-}
-*/
 
 void init_any_level(int lev,THREADPTR table)
 {
@@ -301,61 +244,22 @@ void allocate_and_init ()
 	}
 	
 	
-	/*Memory checks */
-	printf("Gates fn  data\n");
-	for (i = 0; i<nog; i++) {
-		if (net[i]->level == 0) {
-			printf("%s  %d ",net[i]->symbol->symbol,net[i]->fn);
-			for (j = 0; j<patterns; j++) {
-				printf("%d",net[i]->threadData[j].input[0]);
-			}
-			printf("\n");
-		}
-	} 
+	//Memory checks
+	//printf("Gates fn  data\n");
+	//for (i = 0; i<nog; i++) {
+		//if (net[i]->level == 0) {
+			//printf("%s  %d ",net[i]->symbol->symbol,net[i]->fn);
+			//for (j = 0; j<patterns; j++) {
+				//printf("%d",net[i]->threadData[j].input[0]);
+			//}
+			//printf("\n");
+		//}
+	//}
 	
 	
 }
 
-
-
-
-int find_offset (GATEPTR cg)
-{
-	int inputs, offset, fn;
-	
-	inputs = cg->ninput;
-	fn = cg->fn;
-	
-	switch (fn) {
-		case AND:
-			if (inputs == 2) offset = AND2;
-			else if (inputs == 3) offset = AND3;
-			else if (inputs == 4) offset = AND4;
-			else if (inputs == 5) offset = AND5;
-			break;
-		case NAND:
-			if (inputs == 2) offset = NAND2;
-			else if (inputs == 3) offset = NAND3;
-			else if (inputs == 4) offset = NAND4;
-			break;
-		case OR:
-			if (inputs == 2) offset = OR2;
-			else if (inputs == 3) offset = OR3;
-			else if (inputs == 4) offset = OR4;
-			else if (inputs == 5) offset = OR5;
-			break;
-		case NOR:
-			if (inputs == 2) offset = NOR2;
-			else if (inputs == 3) offset = NOR3;
-			else if (inputs == 4) offset = NOR4;
-			break;
-		case PO: offset = PO;
-	}
-	
-	return (offset);
-	
-}
-
+*/
 
 
 

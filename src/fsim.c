@@ -1,3 +1,4 @@
+
 #include "define.h"
 #include "structs.h"
 
@@ -463,3 +464,4 @@ void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
 
 
 }
+

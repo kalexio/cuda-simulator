@@ -99,7 +99,8 @@ int main (int argc, char* const argv[])
     
     
     /*******************************************************************
-     * 				Read the test patterns and make the tables
+     * 		Read the test patterns and prepare the data to send
+     *
      * ****************************************************************/
     
     
@@ -115,25 +116,35 @@ int main (int argc, char* const argv[])
 	if (read_vectors (vectors_fd,vectors_name) != 0)
 		system_error ("read_vectors");
 	
+	//Create the LUT table
+	LUT = create_lut (LUT);
 	
+	//allocation of memory for:
+	//1. LUT, 2. Cuda vectors, 3.Cuda results, 4.Cuda structs
+	//and memcpy for LUT and Cuda vectors
+	device_allocations();
+
+	//kernels for filling the structs and do the first level logic sim
+	init_first_level();
+
+	init_any_level();
 
 	/*******************************************************************
 	 * 						Logic simulation
 	 * ****************************************************************/
 	/* Start the timer  for the Logic simulation*/
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//gettimeofday(&tv,NULL);
+   //	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 	
 		/*logic simulation here for cuda*/
-   		LUT = create_lut (LUT);
-   		device_allocations();
-   		dummy_gpu(0);
+   		//device_allocations();
+   		//dummy_gpu(0);
    		//printf("\ngpu data from first level computed ready\n");
-   		for (k = 1; k<maxlevel; k++) {
-   			init_any_level(k,cuda_tables[k]);
+   		//for (k = 1; k<maxlevel; k++) {
+   			//init_any_level(k,cuda_tables[k]);
    			//printf("data for %d level ready\n",k);
-   			dummy_gpu(k);
-   		}
+   			//dummy_gpu(k);
+   		//}
 
 
 	//logic_sim();
@@ -149,15 +160,15 @@ int main (int argc, char* const argv[])
 		strcat(test_name,".test");
 	} */
 
-	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total=(u2-u1);
+	//gettimeofday(&tv,NULL);
+   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+   // total=(u2-u1);
 
-    printf("\nCPU Time for logic simulation: %f usec\n", total);
-    total= 0;
+    //printf("\nCPU Time for logic simulation: %f usec\n", total);
+    //total= 0;
 
 
-    device_deallocations();
+    //device_deallocations();
 
     //print_logic_sim();
 	
@@ -173,47 +184,47 @@ int main (int argc, char* const argv[])
 
     //creates the fault list only for faults at the output of the gates
     //and not for the branches
-	create_fault_list ();
+	//create_fault_list ();
 	//print_fault_list();
 	//mnhmh sth RAM gia ta arxika sfalmata
 
 
 
-	allocate_cuda_faultables();
+	//allocate_cuda_faultables();
 
-	allocate_TFO_lists();
+	//allocate_TFO_lists();
 
 	/* Start the timer for the fault simulation*/
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//gettimeofday(&tv,NULL);
+   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
 		//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
-		init_faultable(fault_tables[0]);
+		//init_faultable(fault_tables[0]);
 
-	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total=(u2-u1);
-    printf("Fisrt level of scheduling completed %f\n",total);
-    total = 0;
+	//gettimeofday(&tv,NULL);
+   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+   // total=(u2-u1);
+    //printf("Fisrt level of scheduling completed %f\n",total);
+    //total = 0;
 
 	//mnhmh sto GPU
-	device_allocations2();
+	//device_allocations2();
 
 	/* Start the timer */
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//gettimeofday(&tv,NULL);
+   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
 		//ektelesh 1ou epipedou
-		dummy_gpu2(0);
+		//dummy_gpu2(0);
 
 		//ypologise kwno
 		//allocate_TFO_lists();
-		compute_TFO();
-	gettimeofday(&tv,NULL);
-	u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	total=(u2-u1);
-	printf("Fisrt level of fault sim completed %f\n",total);
-	total = 0;
+		//compute_TFO();
+	//gettimeofday(&tv,NULL);
+	//u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//total=(u2-u1);
+	//printf("Fisrt level of fault sim completed %f\n",total);
+	//total = 0;
 	//kaleitai prin apo kathe init any level
 	//next_level_length = compute_length();
 	//printf("plhthos %d\n",next_level_length);
@@ -221,61 +232,61 @@ int main (int argc, char* const argv[])
 	//init_anylevel_faultable(1, fault_tables[1], detect_tables);
 
 
-	for (k = 1; k<maxlevel-2; k++) {
+	//for (k = 1; k<maxlevel-2; k++) {
 
-		next_level_length = compute_length();
+	//	next_level_length = compute_length();
 		//printf("plhthos %d\n",next_level_length*patterns);
-		allocate_next_level(next_level_length, k);
-		init_anylevel_faultable(k, fault_tables[k]);
+		//allocate_next_level(next_level_length, k);
+	//	init_anylevel_faultable(k, fault_tables[k]);
 		//printf("data for %d level ready\n",k);
 
 		/* Start the timer */
 
-		gettimeofday(&tv,NULL);
-	   	u3 = tv.tv_sec*1.0e6 + tv.tv_usec;
-		dummy_gpu2(k);
-		gettimeofday(&tv,NULL);
-	    u4 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	    total1 = total1 + (u4-u3);
-	    printf("xronos gia CUDA %f\n",total1);
-	}
+	//	gettimeofday(&tv,NULL);
+	 //  	u3 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//	dummy_gpu2(k);
+	//	gettimeofday(&tv,NULL);
+	 //   u4 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	  //  total1 = total1 + (u4-u3);
+	  //  printf("xronos gia CUDA %f\n",total1);
+	//}
 
 	//gettimeofday(&tv,NULL);
     //u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
     //total = total + (u2-u1);
 
-	device_deallocations2();
+	//device_deallocations2();
 
 	/* Start the timer */
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//gettimeofday(&tv,NULL);
+   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
-	detect_index = compute_detected();
+	//detect_index = compute_detected();
 	//printf("Length of detetct array %d\n",detect_index);
-	allocate_detect_goodsim(detect_index);
-	prepare_detection(GoodSim, detect_tables);
+	//allocate_detect_goodsim(detect_index);
+	//prepare_detection(GoodSim, detect_tables);
 
-	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total =  (u2-u1);
-    printf("Prepared the detectuion schedule %f\n",total);
+	//gettimeofday(&tv,NULL);
+   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+   // total =  (u2-u1);
+   // printf("Prepared the detectuion schedule %f\n",total);
 
 	//Call the detetction
-	device_allocations3();
+	//device_allocations3();
 
 	/* Start the timer */
-	gettimeofday(&tv,NULL);
-   	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
+	//gettimeofday(&tv,NULL);
+   //	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
 
-   	printf("hell dummy3\n");
-	dummy_gpu3();
+   //	printf("hell dummy3\n");
+	//dummy_gpu3();
 
-	gettimeofday(&tv,NULL);
-    u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    total =  (u2-u1);
-	device_deallocations3();
+	//gettimeofday(&tv,NULL);
+   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
+   // total =  (u2-u1);
+	//device_deallocations3();
 
-    printf("\nCPU Time for fault simulation: %f usec\n", total);
+    //printf("\nCPU Time for fault simulation: %f usec\n", total);
 
 
 	//gettimeofday(&tv,NULL);
