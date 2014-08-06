@@ -133,7 +133,7 @@ int main (int argc, char* const argv[])
 	//kernels the whole Logic simulation
 	init_any_level();
 
-	//for (i = 0; i< patterns*nog; i++) printf("%d",result_tables[i]);
+	for (i = 0; i< patterns*nog; i++) printf("%d",result_tables[i]);
 
 	/*******************************************************************
 	 * 						Logic simulation

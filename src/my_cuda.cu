@@ -24,7 +24,7 @@ __global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int o
 		//THREADTYPE data = dev_table[tid];
 		int loc_pos = pos*length;
 		dev_table[tid+loc_pos].offset = offset;
-		dev_table[tid+loc_pos].input[0] = Vectors[tid];
+		dev_table[tid+loc_pos].input[0] = Vectors[tid+loc_pos];
 		//an douleyei to memset tote poulo ayta
 		//dev_table[tid].input[1] = 0;
 		//dev_table[tid].input[2] = 0;
@@ -34,6 +34,18 @@ __global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int o
 	}
 }
 
+
+__global__ void clean_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		//THREADTYPE data = dev_table[tid];
+		int loc_pos = pos*length;
+		dev_table[tid+loc_pos].input[0] = 0;
+		dev_table[tid+loc_pos].input[1] = 0;
+		dev_table[tid+loc_pos].input[2] = 0;
+		dev_table[tid+loc_pos].input[3] = 0;
+	}
+}
 
 __global__ void fill_struct_kernel1(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -112,7 +124,7 @@ extern "C" void device_allocations()
     //allocations cuda table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size*sizeof(THREADFAULTYPE)));
 	// check the cuda mem set with a memcpy ok -----------------------------------------------
-	HANDLE_ERROR(cudaMemset(dev_table, 0,size*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR(cudaMemset(dev_table, 0, size*sizeof(THREADFAULTYPE)));
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
 
@@ -166,53 +178,59 @@ extern "C" void init_first_level()
 
 extern "C" void init_any_level()
 {
-	int i, j, k, offset;
-	int epipedo, gatepos, array;
+	int i, j, k, l, offset;
+	int epipedo, gatepos, array, array1;
 	int threads, blocks;
 	int pos = 0;
 	int length;
 	GATEPTR cg, hg;
 
-	pos = levels[0];
+	pos = levels[0]-1;
 
 	//Gia ola ta epipeda tou kyklwmatos
 	for (i = 1; i< (maxlevel-1); i++){
 
+		length = patterns * levels[i];
 
-
-	length = patterns * levels[i];
-
-	threads = 128;
-	blocks = ( patterns + (threads-1))/threads;
-	if (blocks < 200) {
-		threads = 64;
+		threads = 128;
 		blocks = ( patterns + (threads-1))/threads;
-	}
-
-	for (j = 0; j< levels[i]; j++){
-		cg = event_list[i].list[j];
-		offset = find_offset(cg);
-		//gia na to dwsoyme ston kernel fill
-		pos++;
-		//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
-		for (k = 0; k<cg->ninput; k++) {
-			hg = cg->inlis[k];
-			array = hg->index * patterns;
-
-			fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
+		if (blocks < 200) {
+			threads = 64;
+			blocks = ( patterns + (threads-1))/threads;
 		}
-	}
 
-	threads = 128;
-	blocks = ( length + (threads-1))/threads;
-	if (blocks < 200) {
-		threads = 64;
+		for (j = 0; j< levels[i]; j++){
+			cg = event_list[i].list[j];
+			offset = find_offset(cg);
+			//gia na to dwsoyme ston kernel fill
+			pos++;
+			printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
+			for (k = 0; k<cg->ninput; k++) {
+				hg = cg->inlis[k];
+				//epipedo = hg->level;
+				//gatepos = hg->level_pos;
+				//array1 = 0;
+				//for (l = 0; l< epipedo; l++){
+					//array1 = array1 + levels[l]*patterns;
+				//}
+				//array1 = array1 + gatepos*patterns;
+				array = hg->index * patterns; //<-----------------
+				//if (array1 != array) printf("Kati paizei!\n");
+				//clean_kernel<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
+				fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
+			}
+		}
+
+		threads = 128;
 		blocks = ( length + (threads-1))/threads;
-	}
+		if (blocks < 200) {
+			threads = 64;
+			blocks = ( length + (threads-1))/threads;
+		}
 
-	//do the first logic sim
-	logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
-	Cuda_index = Cuda_index + length;
+		//do the first logic sim
+		logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
+		Cuda_index = Cuda_index + length;
 
 	}
 
