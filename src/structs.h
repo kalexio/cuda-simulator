@@ -43,6 +43,7 @@ typedef struct THREAD {
 	int input[4];
 } THREADTYPE, *THREADPTR;
 
+//MY_ALIGN(16)
 typedef struct  THREADFAULT {
 	//int count;   helps for the incoming values from multiple fanins - we dont need it for cuda
 	int offset;

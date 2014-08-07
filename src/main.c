@@ -100,7 +100,6 @@ int main (int argc, char* const argv[])
     
     /*******************************************************************
      * 		Read the test patterns and prepare the data to send
-     *
      * ****************************************************************/
     
     
@@ -125,6 +124,7 @@ int main (int argc, char* const argv[])
 	//Create the LUT table
 	LUT = create_lut (LUT);
 	
+	//Total real gates of the circuit
 	Compute_gates();
 
 	//allocation of memory for:
@@ -132,19 +132,31 @@ int main (int argc, char* const argv[])
 	//and memcpy for LUT and Cuda vectors
 	device_allocations();
 
-	//for testing the cudamemset
-	//for (i = 0; i< 1000; i++) printf("%d",cuda_table[i]);
-
 	//kernels for filling the structs and do the first level logic sim
 	init_first_level();
 
 	//kernels the whole Logic simulation
 	init_any_level();
 
-	for (i = 0; i< total_gates*patterns; i++) printf("%d",result_tables[i]);
+	//for (i = 0; i< total_gates*patterns; i++) printf("%d",result_tables[i]);
 
+
+	/*******************************************************************
+	 * 						Fault simulation
+	 * ****************************************************************/
 
 	device_allocations2();
+
+    //creates the fault list only for faults at the output of the gates
+    //and not for the branches
+	create_fault_list ();
+	//print_fault_list();
+
+	//Allocates mem in each gate for the faults pos etc.
+	allocate_TFO_lists();
+
+	fault_init_first_level();
+
 	device_deallocations2();
 
 

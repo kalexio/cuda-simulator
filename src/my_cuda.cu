@@ -59,6 +59,31 @@ __global__ void logic_simulation_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_
 
 
 
+__global__ void fill_fault_struct_kernel_PI(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		int thread_id = tid+pos;
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[0] = Vectors[tid+gatepos];
+		dev_table[thread_id].m0 = inj_bit0;
+		dev_table[thread_id].m1 = inj_bit1;
+	}
+}
+
+__global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos, int k){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		int thread_id = tid+pos;
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[k] = dev_res[tid+gatepos].output;
+		dev_table[thread_id].m0 = inj_bit0;
+		dev_table[thread_id].m1 = inj_bit1;
+	}
+}
+
+
+
+
 
 __global__ void fault_injection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_res,int length){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -198,7 +223,7 @@ extern "C" void init_any_level()
 		Cuda_index = Cuda_index + length;
 
 	}
-	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
+	//HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
 	HANDLE_ERROR( cudaFree(dev_table));
 }
 
@@ -215,6 +240,79 @@ extern "C" void device_allocations2()
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res2, size*sizeof(int)));
 }
+
+
+
+extern "C" void fault_init_first_level(){
+		int i, k;
+		GATEPTR cg, hg;
+		int inj_bit0 = 1;
+		int inj_bit1 = 0;
+		int blocks, threads;
+		int  gatepos, array, arr;
+		int real_faults = -1;
+
+		threads = 256;
+		blocks = ( patterns + (threads-1))/threads;
+		//if (blocks < 200) {
+			//threads = 64;
+			//blocks = ( patterns + (threads-1))/threads;
+		//}
+
+		for (i = 0; i<total_faults; i++){
+			//vriskw to offset ths pulhs kai ta injection bits eite einai PI PO etc
+			cg = fault_list[i].gate;
+			cg->TFO_list[i] = 1;
+
+			if (fault_list[i].SA == 0) {
+				inj_bit0 = 0;
+				inj_bit1 = 0;
+			}
+			else inj_bit1 = 1;
+
+			if ( cg->outlis[0]->fn != PO ) {
+				real_faults++;
+				//thesh stou pinakes twn faults
+				cg->fault_level[i] = 0;
+				cg->flevel_pos[i] = real_faults;
+
+				if (cg->fn != PI) {
+					for (k = 0; k<cg->ninput; k++) {
+						hg = cg->inlis[k];
+						array = hg->index * patterns;
+						arr = real_faults*patterns;
+						//printf("%s me index %d  ",hg->symbol->symbol,hg->index);
+
+						fill_fault_struct_kernel_notPI<<<blocks,threads>>>(dev_table2, dev_res, cg->offset, patterns, arr, inj_bit0, inj_bit1, array, k);
+
+					}
+				}
+
+				else {
+					//Einai PI
+					gatepos = cg->level_pos*patterns;
+					//printf("%s %d ",cg->symbol->symbol,cg->level_pos);
+					arr = real_faults*patterns;
+
+					fill_fault_struct_kernel_PI<<<blocks,threads>>>(dev_table2, cuda_vecs, PI, patterns, arr, inj_bit0, inj_bit1, gatepos);
+			   }
+
+			}
+
+			else {
+				//end this fault
+				fault_list[i].end = 1;
+				//fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc(1*sizeof(GATEPTR));
+				//clear(fault_list[i].TFO_stack);
+				//push(fault_list[i].TFO_stack,fault_list[i].gate);
+			}//end of else
+
+		}//end for faults
+
+		//Call fault injection
+
+}
+
 
 
 extern "C" void device_deallocations2()
