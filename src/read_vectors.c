@@ -112,6 +112,9 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 void Compute_gates(){
 	int i;
 
+	for (i = 0; i< maxlevel-1; i++){
+		total_gates = total_gates + levels[i];
+	}
 
 }
 

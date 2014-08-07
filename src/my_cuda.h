@@ -22,7 +22,9 @@ static void HandleError( cudaError_t err,const char *file,int line ) {
 void device_allocations();
 void init_first_level();
 void init_any_level();
+void device_deallocations();
 int find_offset(GATEPTR);
+
 
 
 
@@ -35,7 +37,7 @@ void device_allocations2();
 void device_allocations3();
 void dealloc();
 void alloc();
-void device_deallocations();
+
 void device_deallocations2();
 void device_deallocations3();
 

@@ -116,6 +116,12 @@ int main (int argc, char* const argv[])
 	if (read_vectors (vectors_fd,vectors_name) != 0)
 		system_error ("read_vectors");
 	
+
+	/*******************************************************************
+	 * 						Logic simulation
+	 * ****************************************************************/
+
+
 	//Create the LUT table
 	LUT = create_lut (LUT);
 	
@@ -135,7 +141,31 @@ int main (int argc, char* const argv[])
 	//kernels the whole Logic simulation
 	init_any_level();
 
-	//for (i = 0; i< 594; i++) printf("%d",result_tables[i]);
+	//for (i = 0; i< total_gates*patters; i++) printf("%d",result_tables[i]);
+
+
+	//Resets the gpu and frees the memory
+	device_deallocations();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/*******************************************************************
 	 * 						Logic simulation

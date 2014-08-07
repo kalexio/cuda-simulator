@@ -17,33 +17,15 @@ int *cuda_vecs = NULL;
 int Cuda_index = 0;
 //int total=0;
 
-											//(dev_table, cuda_vecs, offset, patterns, i);
+
 __global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
-		//THREADTYPE data = dev_table[tid];
-		int loc_pos = pos*length;
-		dev_table[tid+loc_pos].offset = offset;
-		dev_table[tid+loc_pos].input[0] = Vectors[tid+loc_pos];
-		//an douleyei to memset tote poulo ayta
-		//dev_table[tid].input[1] = 0;
-		//dev_table[tid].input[2] = 0;
-		//dev_table[tid].input[3] = 0;
-		dev_table[tid+loc_pos].m0 = 1;
-		dev_table[tid+loc_pos].m1 = 0;
-	}
-}
-
-
-__global__ void clean_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	if (tid < length) {
-		//THREADTYPE data = dev_table[tid];
-		int loc_pos = pos*length;
-		dev_table[tid+loc_pos].input[0] = 0;
-		dev_table[tid+loc_pos].input[1] = 0;
-		dev_table[tid+loc_pos].input[2] = 0;
-		dev_table[tid+loc_pos].input[3] = 0;
+		int thread_id = tid+pos;
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[0] = Vectors[thread_id];
+		dev_table[thread_id].m0 = 1;
+		dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -51,12 +33,11 @@ __global__ void clean_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_res, int of
 __global__ void fill_struct_kernel1(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int read_mem, int k){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
-		//THREADTYPE data = dev_table[tid];
-		int loc_pos = pos*length;
-		dev_table[tid+loc_pos].offset = offset;
-		dev_table[tid+loc_pos].input[k] = dev_res[tid+read_mem].output;
-		dev_table[tid+loc_pos].m0 = 1;
-		dev_table[tid+loc_pos].m1 = 0;
+		int thread_id = tid+pos;
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[k] = dev_res[tid+read_mem].output;
+		dev_table[thread_id].m0 = 1;
+		dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -73,6 +54,9 @@ __global__ void logic_simulation_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_
 		dev_res[tid+pos].output = output;
 	}
 }
+
+
+
 
 
 __global__ void fault_injection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_res,int length){
@@ -108,7 +92,8 @@ extern "C" void device_allocations()
 {
 	//allocate memory for all the gates for logic sim
 	//isws prepei na megalwsei gia na mhn ksanadesmeuoume mnhmh gia to fault sim
-	size_t size = patterns*nog;
+	size_t size = patterns*total_gates;
+	//size_t size = 1000000;
 
 	//int dev;
 	//HANDLE_ERROR( cudaGetDevice (&dev));
@@ -143,8 +128,7 @@ extern "C" void device_allocations()
 extern "C" void init_first_level()
 {
 	int offset, i, threads, blocks;
-	int length;
-	//GATEPTR cg;
+	int length, pos;
 
 	threads = 128;
 	blocks = ( patterns + (threads-1))/threads;
@@ -155,13 +139,9 @@ extern "C" void init_first_level()
 
 	offset = PI;
 	for (i = 0; i<levels[0]; i++) {
-		//call kernel for each gate
-		//cg = event_list[0].list[i];
-		//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
-
-		fill_struct_kernel<<<blocks,threads>>>(dev_table, cuda_vecs, offset, patterns, i);
+		pos = i * patterns;
+		fill_struct_kernel<<<blocks,threads>>>(dev_table, cuda_vecs, offset, patterns, pos);
 	}
-
 	threads = 128;
 	length = patterns * levels[0];
 	blocks = ( length + (threads-1))/threads;
@@ -177,11 +157,9 @@ extern "C" void init_first_level()
 
 extern "C" void init_any_level()
 {
-	int i, j, k, l, offset;
-	int epipedo, gatepos, array, array1;
-	int threads, blocks;
+	int i, j, k, offset, array;
+	int threads, blocks, pos1, length;
 	int pos = 0;
-	int length;
 	GATEPTR cg, hg;
 
 	pos = levels[0]-1;
@@ -200,11 +178,12 @@ extern "C" void init_any_level()
 			cg = event_list[i].list[j];
 			offset = find_offset(cg);
 			pos++;
+			pos1 = pos*patterns;
 			//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
 			for (k = 0; k<cg->ninput; k++) {
 				hg = cg->inlis[k];
-				array = hg->index * patterns; //<-----------------
-				fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos, array, k);
+				array = hg->index * patterns;
+				fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos1, array, k);
 			}
 		}
 
@@ -218,54 +197,23 @@ extern "C" void init_any_level()
 
 		logic_simulation_kernel<<<blocks,threads>>>(dev_table, dev_res, length, Cuda_index);
 		Cuda_index = Cuda_index + length;
-		//printf("%d cuda length\n",Cuda_index);
 
 	}
-
 	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
 }
 
 
 
-
-
-/*void init_any_level(int lev,THREADPTR table)
+extern "C" void device_deallocations()
 {
-	GATEPTR cg,hg,pg;
-	int i,j,k,l,gatepos,m;
-	register int pos;
-	int epipedo;
-	int offset,array,arr;
+    // Free device global memory
+    HANDLE_ERROR( cudaFree(dev_table));
+    HANDLE_ERROR( cudaFree(dev_LUT));
+    HANDLE_ERROR( cudaFree(cuda_vecs));
+    HANDLE_ERROR( cudaFree(dev_res));
+    HANDLE_ERROR( cudaDeviceReset());
 
-	//for all the gates of the lev level
-	for (i = 0; i<=event_list[lev].last; i++) {
-		cg = event_list[lev].list[i];
-
-		//offset = find_offset(cg);
-		//printf("%s\n",cg->symbol->symbol);
-		//koita tis inlist kai pare th thesh twn pulwn apo tis opoies tha diavasoume
-
-		for (k = 0; k<cg->ninput; k++) {
-			hg = cg->inlis[k];
-			epipedo = hg->level;
-			gatepos = hg->level_pos;
-
-			//opts
-			array=gatepos*patterns;
-			arr = i*patterns;
-
-			//for all the patterns for this gate
-			for ( j = 0; j<patterns; j++) {
-				pos = arr + j;
-				table[pos].offset = cg->offset;
-				table[pos].input[k] = result_tables[epipedo][array+j].output;
-			}
-		}
-	}
-}*/
-
-
-
+}
 
 extern "C" int find_offset (GATEPTR cg)
 {
@@ -275,6 +223,8 @@ extern "C" int find_offset (GATEPTR cg)
 	fn = cg->fn;
 
 	switch (fn) {
+		case PI: offset = 0;
+			break;
 		case AND:
 			if (inputs == 2) offset = AND2;
 			else if (inputs == 3) offset = AND3;

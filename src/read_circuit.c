@@ -191,8 +191,8 @@ int read_circuit (FILE *circuit_fd)
 		cg = net[i];
 
 		//<-----------------------------------------
-		//cg->offset = 0;
-		//cg->offset = find_offset(cg);
+		cg->offset = 0;
+		cg->offset = find_offset(cg);
 		//printf(" i have offset %d\n",cg->offset);
 		if (cg->noutput > 0) continue;
 		
