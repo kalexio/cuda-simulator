@@ -141,14 +141,11 @@ int main (int argc, char* const argv[])
 	//kernels the whole Logic simulation
 	init_any_level();
 
-	//for (i = 0; i< total_gates*patters; i++) printf("%d",result_tables[i]);
+	for (i = 0; i< total_gates*patterns; i++) printf("%d",result_tables[i]);
 
 
-	//Resets the gpu and frees the memory
-	device_deallocations();
-
-
-
+	device_allocations2();
+	device_deallocations2();
 
 
 

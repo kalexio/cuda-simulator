@@ -99,7 +99,7 @@ int read_vectors (FILE *vectors_fd,const char* vectors_name)
 	for (i = 0; i<patterns*levels[0]; i++) printf("%d",cuda_vectors[i]); */
 	
 	cuda_table = xmalloc (  patterns*nog*sizeof(THREADFAULTYPE));
-	result_tables = xmalloc (  patterns*nog*sizeof(RESULTYPE));
+	//result_tables = xmalloc (  patterns*nog*sizeof(RESULTYPE));
 	//allocate_and_init ();
 	//allocate_cudatables ();
 	//init_first_level (cuda_tables[0]);
@@ -115,6 +115,7 @@ void Compute_gates(){
 	for (i = 0; i< maxlevel-1; i++){
 		total_gates = total_gates + levels[i];
 	}
+	result_tables = xmalloc ( total_gates*patterns*sizeof(RESULTYPE));
 
 }
 

@@ -8,9 +8,10 @@ extern "C" {
 texture<int> texLUT;
 
 THREADFAULTPTR dev_table = NULL;
-//THREADFAULTPTR dev_table2 = NULL;
+THREADFAULTPTR dev_table2 = NULL;
 //THREADFAULTPTR dev_table3 = NULL;
 RESULTPTR dev_res = NULL;
+RESULTPTR dev_res2 = NULL;
 //RESULTPTR Goodsim = NULL;
 int *dev_LUT = NULL;
 int *cuda_vecs = NULL;
@@ -90,10 +91,9 @@ __global__ void fault_detection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_re
 
 extern "C" void device_allocations()
 {
-	//allocate memory for all the gates for logic sim
-	//isws prepei na megalwsei gia na mhn ksanadesmeuoume mnhmh gia to fault sim
+
 	size_t size = patterns*total_gates;
-	//size_t size = 1000000;
+	//int size = 1000000;
 
 	//int dev;
 	//HANDLE_ERROR( cudaGetDevice (&dev));
@@ -114,7 +114,6 @@ extern "C" void device_allocations()
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
 
-	//HANDLE_ERROR( cudaMemcpy(cuda_table, dev_table, size*sizeof(THREADFAULTYPE),cudaMemcpyDeviceToHost ));
 
 	//fill and bind the texture
 	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
@@ -200,20 +199,36 @@ extern "C" void init_any_level()
 
 	}
 	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaFree(dev_table));
 }
 
 
 
-extern "C" void device_deallocations()
+extern "C" void device_allocations2()
+{
+	size_t size = 100000000;
+
+	//HANDLE_ERROR( cudaSetDevice (2));
+
+    //allocations cuda table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADFAULTYPE)));
+	//allocations for result table
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_res2, size*sizeof(int)));
+}
+
+
+extern "C" void device_deallocations2()
 {
     // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table));
+    HANDLE_ERROR( cudaFree(dev_table2));
     HANDLE_ERROR( cudaFree(dev_LUT));
     HANDLE_ERROR( cudaFree(cuda_vecs));
+    HANDLE_ERROR( cudaFree(dev_res2));
     HANDLE_ERROR( cudaFree(dev_res));
     HANDLE_ERROR( cudaDeviceReset());
 
 }
+
 
 extern "C" int find_offset (GATEPTR cg)
 {
