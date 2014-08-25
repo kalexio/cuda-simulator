@@ -85,13 +85,13 @@ __global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTP
 
 
 
-__global__ void fault_injection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_res,int length){
+__global__ void fault_injection_kernel(THREADFAULTPTR dev_table2, RESULTPTR dev_res2, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
-		THREADFAULTYPE data = dev_table[tid];
+		THREADFAULTYPE data = dev_table2[tid+pos];
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
 		int output = tex1Dfetch(texLUT,index);
-		dev_res[tid].output = (output && data.m0) || data.m1;
+		dev_res2[tid+pos].output = (output & data.m0) | data.m1;
 	}
 }
 
@@ -231,7 +231,7 @@ extern "C" void init_any_level()
 
 extern "C" void device_allocations2()
 {
-	size_t size = 100000000;
+	size_t size = 1000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 
@@ -248,7 +248,7 @@ extern "C" void fault_init_first_level(){
 		GATEPTR cg, hg;
 		int inj_bit0 = 1;
 		int inj_bit1 = 0;
-		int blocks, threads;
+		int blocks, threads, length;
 		int  gatepos, array, arr;
 		int real_faults = -1;
 
@@ -302,6 +302,7 @@ extern "C" void fault_init_first_level(){
 			else {
 				//end this fault
 				fault_list[i].end = 1;
+				//mallon tha mpei =2 kai meta tha kanoume ta analoga po prepei giati edw de mporoume na kanoume push
 				//fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc(1*sizeof(GATEPTR));
 				//clear(fault_list[i].TFO_stack);
 				//push(fault_list[i].TFO_stack,fault_list[i].gate);
@@ -311,6 +312,13 @@ extern "C" void fault_init_first_level(){
 
 		//Call fault injection
 
+		Cuda_index = 0;
+		length = real_faults*patterns;
+		printf("lenth %d\n",length);
+		threads = 512;
+		blocks = ( length + (threads-1))/threads;
+		fault_injection_kernel<<<blocks,threads>>>(dev_table2, dev_res2, length, Cuda_index);
+		Cuda_index = length;
 }
 
 

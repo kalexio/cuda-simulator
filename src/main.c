@@ -127,11 +127,13 @@ int main (int argc, char* const argv[])
 	//Total real gates of the circuit
 	Compute_gates();
 
+	printf("The gates are computed\n");
 	//allocation of memory for:
 	//1. LUT, 2. Cuda vectors, 3.Cuda results, 4.Cuda structs
 	//and memcpy for LUT and Cuda vectors
 	device_allocations();
 
+	printf("memory1 allocated\n");
 	//kernels for filling the structs and do the first level logic sim
 	init_first_level();
 
@@ -146,6 +148,7 @@ int main (int argc, char* const argv[])
 	 * ****************************************************************/
 
 	device_allocations2();
+	printf("memory2 allocated\n");
 
     //creates the fault list only for faults at the output of the gates
     //and not for the branches
@@ -158,6 +161,7 @@ int main (int argc, char* const argv[])
 	fault_init_first_level();
 
 	device_deallocations2();
+	printf("memory deallocated\n");
 
 
 
