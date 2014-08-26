@@ -160,6 +160,24 @@ int main (int argc, char* const argv[])
 
 	fault_init_first_level();
 
+	//make it a function
+	for (i = 0; i<total_faults; i++){
+		//end the faults
+		if(fault_list[i].end == 2){
+			fault_list[i].end = 1;
+			fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc(1*sizeof(GATEPTR));
+			clear(fault_list[i].TFO_stack);
+			push(fault_list[i].TFO_stack,fault_list[i].gate);
+		}
+	}
+	//
+
+	//Ypologizetai to transitive fanout kathe pulhs
+	compute_TFO();
+
+	//Ypologismos tou ariyhmou twn pulwn pou ephreazei to kathe sfalma sto neo epipedo
+	compute_length();
+
 	device_deallocations2();
 	printf("memory deallocated\n");
 

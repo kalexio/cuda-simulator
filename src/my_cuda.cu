@@ -231,7 +231,7 @@ extern "C" void init_any_level()
 
 extern "C" void device_allocations2()
 {
-	size_t size = 1000000;
+	size_t size = 80000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 
@@ -300,12 +300,7 @@ extern "C" void fault_init_first_level(){
 			}
 
 			else {
-				//end this fault
-				fault_list[i].end = 1;
-				//mallon tha mpei =2 kai meta tha kanoume ta analoga po prepei giati edw de mporoume na kanoume push
-				//fault_list[i].TFO_stack.list = (GATEPTR *)xmalloc(1*sizeof(GATEPTR));
-				//clear(fault_list[i].TFO_stack);
-				//push(fault_list[i].TFO_stack,fault_list[i].gate);
+				fault_list[i].end = 2;
 			}//end of else
 
 		}//end for faults
