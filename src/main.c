@@ -172,11 +172,18 @@ int main (int argc, char* const argv[])
 	}
 	//
 
+	printf("End of first level fault\n");
+
 	//Ypologizetai to transitive fanout kathe pulhs
 	compute_TFO();
+	printf("End of compute TFO\n");
 
 	//Ypologismos tou ariyhmou twn pulwn pou ephreazei to kathe sfalma sto neo epipedo
-	compute_length();
+	for (i = 1; i< maxlevel-2; i++){
+		//Ypologismos tou ariyhmou twn pulwn pou ephreazei to kathe sfalma sto neo epipedo
+		compute_length();
+		fault_init_any_level();
+	}
 
 	device_deallocations2();
 	printf("memory deallocated\n");

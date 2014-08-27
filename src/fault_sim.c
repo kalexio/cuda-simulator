@@ -168,7 +168,8 @@ void create_fault_list ()
 	int i;
 	int j = 0;
 	
-	total_faults = 2*(nog-levels[maxlevel-1]);
+	//total_faults = 2*(nog-levels[maxlevel-1]);
+	total_faults = 76;
 	no_po_faults = 0;
 	printf("total fault =%d\n",total_faults);
 	

@@ -16,6 +16,7 @@ RESULTPTR dev_res2 = NULL;
 int *dev_LUT = NULL;
 int *cuda_vecs = NULL;
 int Cuda_index = 0;
+int real_faults = -1;
 //int total=0;
 
 
@@ -82,8 +83,16 @@ __global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTP
 }
 
 
-
-
+__global__ void fill_fault_struct_kernel_Paths(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int gatepos, int k){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		int thread_id = tid + gatepos;
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[k] = dev_res[tid+pos].output;
+		dev_table[thread_id].m0 = 1;
+		dev_table[thread_id].m1 = 0;
+	}
+}
 
 __global__ void fault_injection_kernel(THREADFAULTPTR dev_table2, RESULTPTR dev_res2, int length, int pos){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -189,6 +198,7 @@ extern "C" void init_any_level()
 	pos = levels[0]-1;
 
 	//Gia ola ta epipeda tou kyklwmatos
+	//mhpws thelei -2 anti gia -1????
 	for (i = 1; i< (maxlevel-1); i++){
 
 		threads = 128;
@@ -231,7 +241,7 @@ extern "C" void init_any_level()
 
 extern "C" void device_allocations2()
 {
-	size_t size = 80000000;
+	size_t size = 126000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 
@@ -250,7 +260,7 @@ extern "C" void fault_init_first_level(){
 		int inj_bit1 = 0;
 		int blocks, threads, length;
 		int  gatepos, array, arr;
-		int real_faults = -1;
+		//int real_faults = -1;
 
 		threads = 256;
 		blocks = ( patterns + (threads-1))/threads;
@@ -309,13 +319,83 @@ extern "C" void fault_init_first_level(){
 
 		Cuda_index = 0;
 		length = real_faults*patterns;
-		printf("lenth %d\n",length);
+		printf("lenth in first level %d\n",length);
 		threads = 512;
 		blocks = ( length + (threads-1))/threads;
 		fault_injection_kernel<<<blocks,threads>>>(dev_table2, dev_res2, length, Cuda_index);
 		Cuda_index = length;
 }
 
+
+extern "C" void fault_init_any_level(){
+	int i, k;
+	GATEPTR cg, hg;
+	int  array, arr;
+	int threads, blocks, length;
+	//int real_faults = -1;
+	int counter = -1;
+
+	threads = 256;
+	blocks = ( patterns + (threads-1))/threads;
+
+	for (i = 0; i<total_faults; i++){
+		if (fault_list[i].end != 1) {
+			if(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO){
+				fault_list[i].end = 2;
+			}
+			//not PO yet
+			else{
+				while (fault_list[i].affected_gates > 0){
+					fault_list[i].affected_gates--;
+					cg = fault_list[i].TFO_stack.list[(fault_list[i].TFO_stack.last)--];
+					real_faults++;
+					counter++;
+
+					//cg->fault_level[i] = loop;
+					cg->flevel_pos[i] = real_faults;
+
+					for (k = 0; k<cg->ninput; k++){
+						hg = cg->inlis[k];
+
+						//den einai sto path ara diavase apo to non fault table
+						if (hg->TFO_list[i] != 1){
+							//from where it reads
+							array = hg->index*patterns;
+							//to where it will write
+							arr = real_faults*patterns;
+
+							//CALL KERNEL
+							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res, cg->offset,patterns,array,arr,k);
+
+						}//end of if path
+						else{
+							//from where it reads
+							array = hg->flevel_pos[i]*patterns;
+							//to where it will write
+							arr = real_faults*patterns;
+
+							//CALL KERNEL
+							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res2, cg->offset,patterns,array,arr,k);
+
+						}//end of else path
+
+					}//end of inputs
+
+				}//end of while
+
+			}//end of else
+
+		}//end of fault_list.end != 1
+	}//end of total faults
+
+	length = counter*patterns;
+	threads = 512;
+	blocks = ( length + (threads-1))/threads;
+	fault_injection_kernel<<<blocks,threads>>>(dev_table2, dev_res2, length, Cuda_index);
+	Cuda_index = Cuda_index + length;
+	printf("lenth %d\n",Cuda_index);
+
+}
 
 
 extern "C" void device_deallocations2()
