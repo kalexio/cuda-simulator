@@ -7,6 +7,8 @@ RESULTPTR *fault_result_tables;
 THREADFAULTPTR detect_tables;
 RESULTPTR GoodSim;
 RESULTPTR Final;
+int *patterns_posit;
+int tot_patterns = 0;;
 int detect_index = -1;
 
 
@@ -40,6 +42,40 @@ void allocate_TFO_lists()
 	}
 }
 
+
+void count_fault_patterns()
+{
+	int i,j,index,value,counter;
+	GATEPTR cg,hg;
+
+	for (i = 0; i<total_faults; i++){
+		value = fault_list[i].SA;
+		fault_list[i].tot_patterns = 0;
+		index = fault_list[i].gate->index * patterns;
+		fault_list[i].until_now = tot_patterns;
+		for (j = 0; j<patterns; j++){
+			if(value != result_tables[index+j].output) fault_list[i].tot_patterns++;
+		}
+		tot_patterns = tot_patterns + fault_list[i].tot_patterns;
+	}
+	patterns_posit = xmalloc(tot_patterns*sizeof(int));
+	//printf("total %d\n",tot_patterns);
+
+	counter = -1;
+	for (i = 0; i<total_faults; i++){
+		value = fault_list[i].SA;
+		index = fault_list[i].gate->index * patterns;
+		for (j = 0; j<patterns; j++){
+			if(value != result_tables[index+j].output){
+				counter++;
+				//fault_list[i].patterns_posit[counter] = j;
+				patterns_posit[counter] = j;
+			}
+		}
+	}
+	//printf("counter = %d anti gia %d\n",counter,patterns*total_faults);
+
+}
 
 
 //arxikopoiei to prwto epipedo tou pinaka faults

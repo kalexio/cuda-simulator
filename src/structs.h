@@ -73,6 +73,10 @@ typedef struct FAULT {
 	int fault_pos_indetect;
 	//lista me tis pyles TFO
 	struct STACK TFO_stack;
+	//posa patterns tha eksomoiwsei to sfalma
+	int tot_patterns;
+	//posa eixe mexri kai to prohgoumeno
+	int until_now;
 } FAULTYPE, *FAULTPTR;
 
 

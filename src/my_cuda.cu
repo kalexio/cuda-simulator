@@ -17,6 +17,7 @@ int *dev_LUT = NULL;
 int *cuda_vecs = NULL;
 int Cuda_index = 0;
 int real_faults = -1;
+int *patterns_positions;
 //int total=0;
 
 
@@ -60,23 +61,25 @@ __global__ void logic_simulation_kernel(THREADFAULTPTR dev_table, RESULTPTR dev_
 
 
 
-__global__ void fill_fault_struct_kernel_PI(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos){
+__global__ void fill_fault_struct_kernel_PI(THREADFAULTPTR dev_table, int* Vectors, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos,int *patterns_positions){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		int thread_id = tid+pos;
+		int index = patterns_positions[thread_id];
 		dev_table[thread_id].offset = offset;
-		dev_table[thread_id].input[0] = Vectors[tid+gatepos];
+		dev_table[thread_id].input[0] = Vectors[index];
 		dev_table[thread_id].m0 = inj_bit0;
 		dev_table[thread_id].m1 = inj_bit1;
 	}
 }
 
-__global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos, int k){
+__global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int inj_bit0, int inj_bit1, int gatepos, int k, int *patterns_positions){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		int thread_id = tid+pos;
+		int index = patterns_positions[thread_id];
 		dev_table[thread_id].offset = offset;
-		dev_table[thread_id].input[k] = dev_res[tid+gatepos].output;
+		dev_table[thread_id].input[k] = dev_res[index+gatepos].output;
 		dev_table[thread_id].m0 = inj_bit0;
 		dev_table[thread_id].m1 = inj_bit1;
 	}
@@ -231,23 +234,26 @@ extern "C" void init_any_level()
 		Cuda_index = Cuda_index + length;
 
 	}
-	//HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
+	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
 	HANDLE_ERROR( cudaFree(dev_table));
 }
 
 
 
-extern "C" void device_allocations2()
+extern "C" void device_allocations2(int tot)
 {
-	size_t size = 126000000;
+	size_t size = 120000000;
 
 	//HANDLE_ERROR( cudaSetDevice (2));
 
     //allocations cuda table
+	//printf("CUDA tot = %d\n",tot);
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADFAULTYPE)));
 	HANDLE_ERROR(cudaMemset(dev_table2, 0, size*sizeof(THREADFAULTYPE)));
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res2, size*sizeof(int)));
+	HANDLE_ERROR( cudaMalloc( (void**)&patterns_positions, tot*sizeof(int)));
+	HANDLE_ERROR( cudaMemcpy(patterns_positions, patterns_posit, tot * sizeof(int) , cudaMemcpyHostToDevice));
 }
 
 
@@ -288,13 +294,14 @@ extern "C" void fault_init_first_level(){
 				if (cg->fn != PI) {
 					for (k = 0; k<cg->ninput; k++) {
 						hg = cg->inlis[k];
-						//apo pou tha diavasei
+						//apo pou tha ksekinhsei na diavazei (Logis sim pinaka)
 						array = hg->index * patterns;
 						//pou tha grapsei
-						arr = real_faults*patterns;
+						//arr = real_faults*patterns;
+						arr = fault_list[i].until_now;
 						//printf("%s me index %d  ",hg->symbol->symbol,hg->index);
 
-						fill_fault_struct_kernel_notPI<<<blocks,threads>>>(dev_table2, dev_res, cg->offset, patterns, arr, inj_bit0, inj_bit1, array, k);
+						fill_fault_struct_kernel_notPI<<<blocks,threads>>>(dev_table2, dev_res, cg->offset, fault_list[i].tot_patterns, arr, inj_bit0, inj_bit1, array, k,patterns_positions);
 
 					}
 				}
@@ -305,9 +312,10 @@ extern "C" void fault_init_first_level(){
 					gatepos = cg->level_pos*patterns;
 					//printf("%s %d ",cg->symbol->symbol,cg->level_pos);
 					//pou tha grapsei
-					arr = real_faults*patterns;
+					//arr = real_faults*patterns;
+					arr = fault_list[i].until_now;
 
-					fill_fault_struct_kernel_PI<<<blocks,threads>>>(dev_table2, cuda_vecs, PI, patterns, arr, inj_bit0, inj_bit1, gatepos);
+					fill_fault_struct_kernel_PI<<<blocks,threads>>>(dev_table2, cuda_vecs, PI, fault_list[i].tot_patterns, arr, inj_bit0, inj_bit1, gatepos,patterns_positions);
 			   }
 
 			}
@@ -321,7 +329,8 @@ extern "C" void fault_init_first_level(){
 		//Call fault injection
 
 		Cuda_index = 0;
-		length = real_faults*patterns;
+		//length = real_faults*patterns;
+		length = tot_patterns;
 		printf("lenth in first level %d\n",length);
 		threads = 512;
 		blocks = ( length + (threads-1))/threads;
@@ -450,206 +459,3 @@ extern "C" int find_offset (GATEPTR cg)
 	return (offset);
 
 }
-
-
-
-/*
-extern "C" void dummy_gpu(int level){
-	//int i;
-	int blocks;
-	int threads;
-
-
-	//size_t size = patterns*levels[0]*sizeof(THREADTYPE);
-	int length = patterns*levels[level];
-	//total=total+length;
-	//printf("Length for logic sim epipedo %d %d\n",level,length);
-
-	//device_allocations();
-
-	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table, cuda_tables[level], length*sizeof(THREADTYPE), cudaMemcpyHostToDevice));
-
-	//printf("length of array=%d\n",length);
-	//printf("maxgates=%d\n",maxgates);
-
-	threads = 128;
-	blocks = (length+(threads-1))/threads;
-	if (blocks < 200) {
-		threads = 64;
-		blocks = (length+(threads-1))/threads;
-	}
-   // printf("The number of blocks %d\n",blocks);
-    logic_simulation_kernel<<<blocks,threads>>>(dev_table,dev_res,length);
-
-
-	HANDLE_ERROR( cudaMemcpy(result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
-
-
-    //for (i = 0; i<length; i++ )
-    	//printf("%d",result_tables[level][i]);
-    //printf("\n");
-}
-
-
-extern "C" void dummy_gpu2(int level){
-	//int i;
-	int blocks;
-	int threads;
-
-	int length = no_po_faults*patterns;
-	if (level > 0) length = next_level_length * patterns;
-	//total=total+length;
-	//printf("CUDA2 length gia epipedo %d %d\n",level,length);
-
-	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table2, fault_tables[level], length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
-
-	//printf("length of array=%d\n",length);
-	//printf("maxgates=%d\n",maxgates);
-
-	threads = 128;
-	blocks = (length+(threads-1))/threads;
-	if (blocks < 200) {
-		threads = 64;
-		blocks = (length+(threads-1))/threads;
-	}
-   // printf("The number of blocks %d\n",blocks);
-	fault_injection_kernel<<<blocks,threads>>>(dev_table2,dev_res,length);
-	
-
-	HANDLE_ERROR( cudaMemcpy(fault_result_tables[level], dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
-
-
-    //for (i = 0; i<length; i++ )
-    	//printf("%d",fault_result_tables[level][i]);
-}
-
-
-
-extern "C" void dummy_gpu3(){
-	//int i;
-	int blocks;
-	int threads;
-
-	int length = detect_index*patterns;
-	//printf("CUDA3 length is %d\n",length);
-
-	//printf("I am here\n");
-	//copy from Ram to device
-	HANDLE_ERROR( cudaMemcpy(dev_table3, detect_tables, length*sizeof(THREADFAULTYPE), cudaMemcpyHostToDevice));
-	HANDLE_ERROR( cudaMemcpy(Goodsim, GoodSim, length*sizeof(int), cudaMemcpyHostToDevice));
-
-	//printf("length of array=%d\n",length);
-	//printf("maxgates=%d\n",maxgates);
-
-	threads = 128;
-	blocks = (length+(threads-1))/threads;
-	if (blocks < 200) {
-		threads = 64;
-		blocks = (length+(threads-1))/threads;
-	}
-   // printf("The number of blocks %d\n",blocks);
-	fault_detection_kernel<<<blocks,threads>>>(dev_table3,dev_res,Goodsim,length);
-
-
-	HANDLE_ERROR( cudaMemcpy(Final, dev_res,length*sizeof(int) , cudaMemcpyDeviceToHost));
-
-    //for(i = 0; i<length; i++)printf("%d",GoodSim[i]);
-
-    printf("length is %d\n",length);
-
-    //for (i = 0; i<length; i++ )
-    	//printf("%d",Final[i]);
-}
-
-
-
-extern "C" void device_allocations()
-{
-	size_t size = patterns*maxgates;
-	//int dev;
-
-	//HANDLE_ERROR( cudaGetDevice (&dev));
-	//printf("ID of current CUDA device: %d\n",dev);
-	HANDLE_ERROR( cudaSetDevice (2));
-	//HANDLE_ERROR( cudaGetDevice (&dev));
-	//printf("ID of current CUDA device: %d\n",dev);
-
-	//allocations for texture memory
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
-    //allocations cuda table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table, size*sizeof(THREADTYPE)));
-	//allocations for result table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
-	//fill and bind the texture
-	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
-	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
-}
-
-
-extern "C" void device_allocations2()
-{
-	size_t size = 100000000;
-
-	//HANDLE_ERROR( cudaSetDevice (2));
-
-    //allocations cuda table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADFAULTYPE)));
-	//allocations for result table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, size*sizeof(int)));
-}
-
-
-extern "C" void alloc(){
-	size_t size = 100000000;
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADTYPE)));
-}
-
-
-extern "C" void device_allocations3()
-{
-	int length = detect_index*patterns;
-	//int length =100000000;
-
-	//HANDLE_ERROR( cudaSetDevice (2));
-
-    //allocations cuda table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, length*sizeof(THREADFAULTYPE)));
-	HANDLE_ERROR( cudaMalloc( (void**)&Goodsim, length*sizeof(int)));
-	//allocations for result table
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_res, length*sizeof(int)));
-}
-
-
-extern "C" void device_deallocations()
-{
-    // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table));
-    HANDLE_ERROR( cudaFree(dev_res));
-    //HANDLE_ERROR( cudaDeviceReset());
-
-}
-
-
-extern "C" void dealloc(){
-	HANDLE_ERROR( cudaFree(dev_table2));
-}
-
-
-extern "C" void device_deallocations2()
-{
-    // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table2));
-    HANDLE_ERROR( cudaFree(dev_res));
-    //HANDLE_ERROR( cudaDeviceReset());
-}
-
-extern "C" void device_deallocations3()
-{
-    // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table3));
-    HANDLE_ERROR( cudaFree(dev_res));
-    HANDLE_ERROR( cudaDeviceReset());
-}
-*/

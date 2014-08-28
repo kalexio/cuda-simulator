@@ -147,9 +147,6 @@ int main (int argc, char* const argv[])
 	 * 						Fault simulation
 	 * ****************************************************************/
 
-	device_allocations2();
-	printf("memory2 allocated\n");
-
     //creates the fault list only for faults at the output of the gates
     //and not for the branches
 	create_fault_list ();
@@ -158,8 +155,17 @@ int main (int argc, char* const argv[])
 	//Allocates mem in each gate for the faults pos etc.
 	allocate_TFO_lists();
 
-	fault_init_first_level();
+	//Computes for every fault how many patterns should be simulated
+	//and which exactly
+	count_fault_patterns();
 
+	device_allocations2(tot_patterns);
+	printf("memory2 allocated\n");
+
+
+	fault_init_first_level();
+	/*
+		 *Under construction!!!!!!!!!!
 	//make it a function
 	for (i = 0; i<total_faults; i++){
 		//end the faults
@@ -170,7 +176,7 @@ int main (int argc, char* const argv[])
 			push(fault_list[i].TFO_stack,fault_list[i].gate);
 		}
 	}
-	//
+	//////////
 
 	printf("End of first level fault\n");
 
@@ -184,227 +190,10 @@ int main (int argc, char* const argv[])
 		compute_length();
 		fault_init_any_level();
 	}
+	*/
 
 	device_deallocations2();
 	printf("memory deallocated\n");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*******************************************************************
-	 * 						Logic simulation
-	 * ****************************************************************/
-	/* Start the timer  for the Logic simulation*/
-	//gettimeofday(&tv,NULL);
-   //	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	
-		/*logic simulation here for cuda*/
-   		//device_allocations();
-   		//dummy_gpu(0);
-   		//printf("\ngpu data from first level computed ready\n");
-   		//for (k = 1; k<maxlevel; k++) {
-   			//init_any_level(k,cuda_tables[k]);
-   			//printf("data for %d level ready\n",k);
-   			//dummy_gpu(k);
-   		//}
-
-
-	//logic_sim();
-
-	/*i=0; j=0;
-	if(test_name[0]=='\0') {
-		while((c=circuit_name[i++])!='\0') {
-			if(c=='/') j=0;
-			else if(c=='.') break;
-			else test_name[j++]=c;
-		}
-		test_name[j]='\0';
-		strcat(test_name,".test");
-	} */
-
-	//gettimeofday(&tv,NULL);
-   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-   // total=(u2-u1);
-
-    //printf("\nCPU Time for logic simulation: %f usec\n", total);
-    //total= 0;
-
-
-    //device_deallocations();
-
-    //print_logic_sim();
-	
-	
-
-
-	/*******************************************************************
-	 * 						Fault simulation
-	 * ****************************************************************/
-
-    /* fault simulation for cuda here */
-    //tha mporoume na thn pairnoume kai etoimh thn fault list
-
-    //creates the fault list only for faults at the output of the gates
-    //and not for the branches
-	//create_fault_list ();
-	//print_fault_list();
-	//mnhmh sth RAM gia ta arxika sfalmata
-
-
-
-	//allocate_cuda_faultables();
-
-	//allocate_TFO_lists();
-
-	/* Start the timer for the fault simulation*/
-	//gettimeofday(&tv,NULL);
-   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
-		//ftiaxnei ton pinaka gia to cuda me ta sfalmata ola osa den einai PO
-		//init_faultable(fault_tables[0]);
-
-	//gettimeofday(&tv,NULL);
-   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-   // total=(u2-u1);
-    //printf("Fisrt level of scheduling completed %f\n",total);
-    //total = 0;
-
-	//mnhmh sto GPU
-	//device_allocations2();
-
-	/* Start the timer */
-	//gettimeofday(&tv,NULL);
-   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
-		//ektelesh 1ou epipedou
-		//dummy_gpu2(0);
-
-		//ypologise kwno
-		//allocate_TFO_lists();
-		//compute_TFO();
-	//gettimeofday(&tv,NULL);
-	//u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	//total=(u2-u1);
-	//printf("Fisrt level of fault sim completed %f\n",total);
-	//total = 0;
-	//kaleitai prin apo kathe init any level
-	//next_level_length = compute_length();
-	//printf("plhthos %d\n",next_level_length);
-	//allocate_next_level(next_level_length, 1);
-	//init_anylevel_faultable(1, fault_tables[1], detect_tables);
-
-
-	//for (k = 1; k<maxlevel-2; k++) {
-
-	//	next_level_length = compute_length();
-		//printf("plhthos %d\n",next_level_length*patterns);
-		//allocate_next_level(next_level_length, k);
-	//	init_anylevel_faultable(k, fault_tables[k]);
-		//printf("data for %d level ready\n",k);
-
-		/* Start the timer */
-
-	//	gettimeofday(&tv,NULL);
-	 //  	u3 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	//	dummy_gpu2(k);
-	//	gettimeofday(&tv,NULL);
-	 //   u4 = tv.tv_sec*1.0e6 + tv.tv_usec;
-	  //  total1 = total1 + (u4-u3);
-	  //  printf("xronos gia CUDA %f\n",total1);
-	//}
-
-	//gettimeofday(&tv,NULL);
-    //u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    //total = total + (u2-u1);
-
-	//device_deallocations2();
-
-	/* Start the timer */
-	//gettimeofday(&tv,NULL);
-   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
-	//detect_index = compute_detected();
-	//printf("Length of detetct array %d\n",detect_index);
-	//allocate_detect_goodsim(detect_index);
-	//prepare_detection(GoodSim, detect_tables);
-
-	//gettimeofday(&tv,NULL);
-   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-   // total =  (u2-u1);
-   // printf("Prepared the detectuion schedule %f\n",total);
-
-	//Call the detetction
-	//device_allocations3();
-
-	/* Start the timer */
-	//gettimeofday(&tv,NULL);
-   //	u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
-   //	printf("hell dummy3\n");
-	//dummy_gpu3();
-
-	//gettimeofday(&tv,NULL);
-   // u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-   // total =  (u2-u1);
-	//device_deallocations3();
-
-    //printf("\nCPU Time for fault simulation: %f usec\n", total);
-
-
-	//gettimeofday(&tv,NULL);
-   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;
-
-
-
-
-
-	//<----------------------------------------------------------------
-	//fault simulation here
-	//gettimeofday(&tv,NULL);
-   	//u1 = tv.tv_sec*1.0e6 + tv.tv_usec;	
-	
-	//create_fault_list ();
-	//print_fault_list();
-	//fault_sim();
-	
-	//gettimeofday(&tv,NULL);
-    //u2 = tv.tv_sec*1.0e6 + tv.tv_usec;
-    
-    //total=(u2-u1);
-    
-    //printf("Time for fault simulation: %f usec\n", total);
-    //total= 0;
-	
-	
-	
-	/*if ( fault_name == NULL ) {
-		printf("\nWe are done\n");
-		return 0;
-	}
-	
-	printf("opening fault file= %s\n",fault_name);
-    vectors_fd = fopen (vectors_name, "r");
-	if (vectors_fd == NULL)
-		system_error ("fopen"); */
-	
-	
-		
-	//	synexeia simulation<-----------------------------------
-    
     
     
     printf("\nWe are done\n");
@@ -473,8 +262,6 @@ void handle_files (const char* circuit_name,const char* vectors_name)
 	}
 			
 }
-
-
 
 
 static void print_usage (int is_error)

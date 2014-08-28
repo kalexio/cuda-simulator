@@ -152,6 +152,7 @@ extern int compute_length();
 extern int compute_detected();
 extern void allocate_detect_goodsim(int );
 extern void prepare_detection(RESULTPTR , THREADFAULTPTR );
+extern void count_fault_patterns();
 extern THREADFAULTPTR *fault_tables;
 extern RESULTPTR GoodSim;
 extern RESULTPTR Final;
@@ -159,6 +160,8 @@ extern RESULTPTR *fault_result_tables;
 extern THREADFAULTPTR detect_tables;
 extern int next_level_length;
 extern int detect_index;
+extern int *patterns_posit;
+extern int tot_patterns;
 
 
 
