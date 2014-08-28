@@ -89,8 +89,9 @@ __global__ void fill_fault_struct_kernel_Paths(THREADFAULTPTR dev_table, RESULTP
 		int thread_id = tid + gatepos;
 		dev_table[thread_id].offset = offset;
 		dev_table[thread_id].input[k] = dev_res[tid+pos].output;
-		dev_table[thread_id].m0 = 1;
-		dev_table[thread_id].m1 = 0;
+		//exei ginei memset
+		//dev_table[thread_id].m0 = 1;
+		//dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -116,9 +117,6 @@ __global__ void fault_detection_kernel(THREADFAULTPTR dev_table,RESULTPTR dev_re
 		dev_res[tid].output = output ^ output1;
 	}
 }
-
-
-
 
 
 
@@ -247,6 +245,7 @@ extern "C" void device_allocations2()
 
     //allocations cuda table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_table2, size*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR(cudaMemset(dev_table2, 0, size*sizeof(THREADFAULTYPE)));
 	//allocations for result table
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_res2, size*sizeof(int)));
 }
@@ -282,14 +281,16 @@ extern "C" void fault_init_first_level(){
 
 			if ( cg->outlis[0]->fn != PO ) {
 				real_faults++;
+
 				//thesh stou pinakes twn faults
-				cg->fault_level[i] = 0;
 				cg->flevel_pos[i] = real_faults;
 
 				if (cg->fn != PI) {
 					for (k = 0; k<cg->ninput; k++) {
 						hg = cg->inlis[k];
+						//apo pou tha diavasei
 						array = hg->index * patterns;
+						//pou tha grapsei
 						arr = real_faults*patterns;
 						//printf("%s me index %d  ",hg->symbol->symbol,hg->index);
 
@@ -300,8 +301,10 @@ extern "C" void fault_init_first_level(){
 
 				else {
 					//Einai PI
+					//apo pou tha diavsei
 					gatepos = cg->level_pos*patterns;
 					//printf("%s %d ",cg->symbol->symbol,cg->level_pos);
+					//pou tha grapsei
 					arr = real_faults*patterns;
 
 					fill_fault_struct_kernel_PI<<<blocks,threads>>>(dev_table2, cuda_vecs, PI, patterns, arr, inj_bit0, inj_bit1, gatepos);
@@ -332,7 +335,6 @@ extern "C" void fault_init_any_level(){
 	GATEPTR cg, hg;
 	int  array, arr;
 	int threads, blocks, length;
-	//int real_faults = -1;
 	int counter = -1;
 
 	threads = 256;
@@ -351,7 +353,6 @@ extern "C" void fault_init_any_level(){
 					real_faults++;
 					counter++;
 
-					//cg->fault_level[i] = loop;
 					cg->flevel_pos[i] = real_faults;
 
 					for (k = 0; k<cg->ninput; k++){
