@@ -156,7 +156,7 @@ int main (int argc, char* const argv[])
 	allocate_TFO_lists();
 
 	//Computes for every fault how many patterns should be simulated
-	//and which exactly
+	//and creates an array which its every posotion points to a specific pattern
 	count_fault_patterns();
 
 	device_allocations2(tot_patterns);
@@ -164,8 +164,8 @@ int main (int argc, char* const argv[])
 
 
 	fault_init_first_level();
-	/*
-		 *Under construction!!!!!!!!!!
+
+
 	//make it a function
 	for (i = 0; i<total_faults; i++){
 		//end the faults
@@ -190,7 +190,7 @@ int main (int argc, char* const argv[])
 		compute_length();
 		fault_init_any_level();
 	}
-	*/
+
 
 	device_deallocations2();
 	printf("memory deallocated\n");

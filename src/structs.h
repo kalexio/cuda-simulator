@@ -76,6 +76,7 @@ typedef struct FAULT {
 	//posa patterns tha eksomoiwsei to sfalma
 	int tot_patterns;
 	//posa eixe mexri kai to prohgoumeno
+	//ara apo poia thesh ksekinaei ayto ston  pinaka
 	int until_now;
 } FAULTYPE, *FAULTPTR;
 

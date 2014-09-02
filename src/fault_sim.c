@@ -166,12 +166,14 @@ void allocate_and_init_faults ()
 void create_fault_list ()
 {
 	int i;
-	int j = 0;
+	//int j = 0;
+	int j = 200;
 	
 	//total_faults = 2*(nog-levels[maxlevel-1]);
-	total_faults = 76;
+	total_faults = 450;
 	no_po_faults = 0;
 	printf("total fault =%d\n",total_faults);
+	printf("I have %d number of PI and %d number of gates\n",nopi,nog);
 	
 	fault_list = (FAULTYPE *)xmalloc(total_faults*sizeof(FAULTYPE));
 	//printf("%d",event_list[0].last+1);

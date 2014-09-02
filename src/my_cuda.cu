@@ -85,13 +85,13 @@ __global__ void fill_fault_struct_kernel_notPI(THREADFAULTPTR dev_table, RESULTP
 	}
 }
 
-
-__global__ void fill_fault_struct_kernel_Paths(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int gatepos, int k){
+__global__ void fill_fault_struct_kernel_Paths(THREADFAULTPTR dev_table, RESULTPTR dev_res, int offset, int length, int pos, int gatepos, int k, int *patterns_positions,int until_now){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		int thread_id = tid + gatepos;
+		int index = patterns_positions[tid + until_now];
 		dev_table[thread_id].offset = offset;
-		dev_table[thread_id].input[k] = dev_res[tid+pos].output;
+		dev_table[thread_id].input[k] = dev_res[index+pos].output;
 		//exei ginei memset
 		//dev_table[thread_id].m0 = 1;
 		//dev_table[thread_id].m1 = 0;
@@ -289,7 +289,9 @@ extern "C" void fault_init_first_level(){
 				real_faults++;
 
 				//thesh stou pinakes twn faults
-				cg->flevel_pos[i] = real_faults;
+				//allagh = until_now??
+				//cg->flevel_pos[i] = real_faults;
+				cg->flevel_pos[i] = fault_list[i].until_now;
 
 				if (cg->fn != PI) {
 					for (k = 0; k<cg->ninput; k++) {
@@ -345,9 +347,11 @@ extern "C" void fault_init_any_level(){
 	int  array, arr;
 	int threads, blocks, length;
 	int counter = -1;
+	int prev_tot_patterns;
 
 	threads = 256;
 	blocks = ( patterns + (threads-1))/threads;
+	prev_tot_patterns = tot_patterns;
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
@@ -362,7 +366,9 @@ extern "C" void fault_init_any_level(){
 					real_faults++;
 					counter++;
 
-					cg->flevel_pos[i] = real_faults;
+					//allagh = tot_patterns;??
+					//cg->flevel_pos[i] = real_faults;
+					cg->flevel_pos[i] = tot_patterns;
 
 					for (k = 0; k<cg->ninput; k++){
 						hg = cg->inlis[k];
@@ -372,24 +378,39 @@ extern "C" void fault_init_any_level(){
 							//from where it reads
 							array = hg->index*patterns;
 							//to where it will write
-							arr = real_faults*patterns;
+							//arr = tot_patterns kai sto telos tou kernel tot_pattern = tot_pattern + falt_list.tot;
+							//mallon tha auksanetai exw apo thn if auth kai tha einai kai gia tis 2 periptwseis
+
+							//arr = real_faults*patterns;
+							arr = tot_patterns;
 
 							//CALL KERNEL
-							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res, cg->offset,patterns,array,arr,k);
+							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now);
 
 						}//end of if path
 						else{
 							//from where it reads
-							array = hg->flevel_pos[i]*patterns;
+							//!!!!!idea na xrhsimopoihsoume th metablhth flevel pos gia na mas deixnei th thesh tou pinka
+							//array = hg->flevel_pos[i];
+
+							//array = hg->flevel_pos[i]*patterns;
+							array = hg->flevel_pos[i];
+
 							//to where it will write
-							arr = real_faults*patterns;
+							//!!!!allagh opws eipame
+
+							//arr = real_faults*patterns;
+							arr = tot_patterns;
 
 							//CALL KERNEL
-							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res2, cg->offset,patterns,array,arr,k);
+							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res2, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now);
 
 						}//end of else path
 
 					}//end of inputs
+
+					//mallon edw paei h auxhsh tou tot_patterns!!!!!!!!!
+					tot_patterns = tot_patterns + fault_list[i].tot_patterns;
 
 				}//end of while
 
@@ -398,12 +419,14 @@ extern "C" void fault_init_any_level(){
 		}//end of fault_list.end != 1
 	}//end of total faults
 
-	length = counter*patterns;
+	//length = counter*patterns;
+	length = tot_patterns - prev_tot_patterns;
+	printf("Now length is %d\n",length);
 	threads = 512;
 	blocks = ( length + (threads-1))/threads;
 	fault_injection_kernel<<<blocks,threads>>>(dev_table2, dev_res2, length, Cuda_index);
 	Cuda_index = Cuda_index + length;
-	printf("lenth %d\n",Cuda_index);
+	printf("lenth until now %d\n",Cuda_index);
 
 }
 

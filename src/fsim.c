@@ -43,6 +43,9 @@ void allocate_TFO_lists()
 }
 
 
+//tot_patterns = posa sunolika sfalmata tha exomoiwthoun
+//faultlist.tot_patterns = posa sfalmata gia to sygkekrimeno sfalma
+//until_now  = se poia thesh tou pinaka ksekinaei to sygkekrimeno sfalma
 void count_fault_patterns()
 {
 	int i,j,index,value,counter;
