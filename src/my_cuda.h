@@ -24,24 +24,9 @@ void init_first_level();
 void init_any_level();
 void device_allocations2(int);
 void fault_init_first_level();
-void fault_init_any_level();
-void device_deallocations2();
-int find_offset(GATEPTR);
-
-
-
-
-
-
-void dummy_gpu(int);
-void dummy_gpu2(int);
-void dummy_gpu3();
-
-void device_allocations3();
-void dealloc();
-void alloc();
-
+int fault_init_any_level();
+void device_allocations3(int tot);
 void device_deallocations3();
-
+int find_offset(GATEPTR);
 
 #endif

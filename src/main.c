@@ -47,6 +47,7 @@ int main (int argc, char* const argv[])
 	double u1, u2, u3, u4, total  =  0;
 	double total1 = 0;
 	struct timeval tv;
+	int length,detected;
     
     /*******************************************************************
      * 						Make the structures
@@ -188,11 +189,20 @@ int main (int argc, char* const argv[])
 	for (i = 1; i< maxlevel-2; i++){
 		//Ypologismos tou ariyhmou twn pulwn pou ephreazei to kathe sfalma sto neo epipedo
 		compute_length();
-		fault_init_any_level();
+		length = fault_init_any_level();
+		printf("Computed levels in %d level is %d\n",i,length);
+		if (length == 0) break;
 	}
 
+	detected = compute_detected();
+	printf("Length of fault detection is %d\n",detected);
 
-	device_deallocations2();
+	void device_allocations3(detected);
+	printf("memory3 allocated\n");
+
+	//fault detetction here!!!!
+
+	device_deallocations3();
 	printf("memory deallocated\n");
     
     

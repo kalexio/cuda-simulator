@@ -9,7 +9,7 @@ texture<int> texLUT;
 
 THREADFAULTPTR dev_table = NULL;
 THREADFAULTPTR dev_table2 = NULL;
-//THREADFAULTPTR dev_table3 = NULL;
+THREADFAULTPTR dev_table3 = NULL;
 RESULTPTR dev_res = NULL;
 RESULTPTR dev_res2 = NULL;
 //RESULTPTR Goodsim = NULL;
@@ -341,7 +341,7 @@ extern "C" void fault_init_first_level(){
 }
 
 
-extern "C" void fault_init_any_level(){
+extern "C" int fault_init_any_level(){
 	int i, k;
 	GATEPTR cg, hg;
 	int  array, arr;
@@ -421,26 +421,144 @@ extern "C" void fault_init_any_level(){
 
 	//length = counter*patterns;
 	length = tot_patterns - prev_tot_patterns;
-	printf("Now length is %d\n",length);
 	threads = 512;
 	blocks = ( length + (threads-1))/threads;
 	fault_injection_kernel<<<blocks,threads>>>(dev_table2, dev_res2, length, Cuda_index);
 	Cuda_index = Cuda_index + length;
 	printf("lenth until now %d\n",Cuda_index);
 
+	return length;
 }
 
 
-extern "C" void device_deallocations2()
+extern "C" void device_allocations3(int tot)
+{
+	HANDLE_ERROR( cudaFree(dev_table2));
+	HANDLE_ERROR( cudaFree(cuda_vecs));
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, tot*sizeof(THREADFAULTYPE)));
+}
+
+
+
+
+
+
+/*
+void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
+{
+	int i, j, k;
+	GATEPTR cg, hg;
+	int counter = -1;
+	int epipedo, gatepos, array, arr, pos, offset;
+
+	//printf("i am in detect\n");
+
+	for (i = 0; i<total_faults; i++){
+		//already done
+		if ((fault_list[i].end == 1) ||(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO)) {
+			//printf("Arxiko sfalma %s\n",fault_list[i].gate->symbol->symbol);
+
+			while(!is_empty(fault_list[i].TFO_stack)){
+				cg = pop(fault_list[i].TFO_stack);
+				//printf("lista %s\n",cg->symbol->symbol);
+				//offset = find_offset(cg);
+
+
+				counter++;
+
+				//vres th thesh ths pulhs eksodou apo to logic sim
+				//kai vale thn eksodo sto gootable
+				epipedo = cg->level;
+				//printf("epipeda %d\n",epipedo);
+				gatepos = cg->level_pos;
+				//printf("gatepos %d\n",gatepos);
+
+				array=gatepos*patterns;
+				arr = counter * patterns;
+				//printf("arr %d\n",arr);
+
+				for (j = 0; j<patterns; j++){
+					pos = arr + j;
+					//goodtable[pos].output = result_tables[epipedo][array+j].output;
+					//printf("%d",goodtable[pos].output);
+				}//end for patterns
+
+				//pare ta apotelesmata kai valta ston pinaka detect
+				for (k = 0; k<cg->ninput; k++) {
+					hg = cg->inlis[k];
+					//printf("read inputs %s\n",hg->symbol->symbol);
+					if(hg->TFO_list[i] != 1){
+						//printf("not TFO\n");
+						//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
+						epipedo = hg->level;
+						gatepos = hg->level_pos;
+
+						//h thesh ston apothkeumeno pinaka
+						array=gatepos*patterns;
+						//h thesh ston pinaka pou ftiaxnoume
+
+						arr = counter * patterns;
+						//printf("arr %d\n",arr);
+
+						for (j = 0; j<patterns; j++){
+							pos = arr + j;
+							dtable[pos].offset = cg->offset;
+							//dtable[pos].input[k] = result_tables[epipedo][array+j].output;
+							dtable[pos].input[2] = 0;
+							dtable[pos].input[3] = 0;
+							//printf("%d",dtable[pos].input[k]);
+							//mallon prepei na bgoun
+							dtable[pos].m0 = 1;
+							dtable[pos].m1 = 0;
+						}//end for patterns
+					}
+					else{
+						//printf("TFO!!\n");
+						epipedo = hg->fault_level[i];
+						gatepos = hg->flevel_pos[i];
+
+						//h thesh ston apothkeumeno pinaka
+						array=gatepos*patterns;
+						//h thesh ston pinaka pou ftiaxnoume
+						arr = counter * patterns;
+
+						for (j = 0; j<patterns; j++){
+							pos = arr + j;
+							dtable[pos].offset = cg->offset;
+							dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
+							dtable[pos].input[2] = 0;
+							dtable[pos].input[3] = 0;
+							//printf("%d",dtable[pos].input[k]);
+							dtable[pos].m0 = 1;
+							dtable[pos].m1 = 0;
+						}//end for patterns
+
+					}
+				}//end for inputs
+
+			}//end of while
+
+		}
+		else printf("something went wrong!\n");
+	}
+
+
+}
+*/
+
+
+
+
+
+
+extern "C" void device_deallocations3()
 {
     // Free device global memory
-    HANDLE_ERROR( cudaFree(dev_table2));
+	HANDLE_ERROR( cudaFree(dev_table3));
     HANDLE_ERROR( cudaFree(dev_LUT));
-    HANDLE_ERROR( cudaFree(cuda_vecs));
     HANDLE_ERROR( cudaFree(dev_res2));
     HANDLE_ERROR( cudaFree(dev_res));
     HANDLE_ERROR( cudaDeviceReset());
-
 }
 
 

@@ -383,16 +383,18 @@ int compute_detected()
 {
 	int counter = 0;
 	int i, j;
+	int counter2;
 
 	for (i = 0; i<total_faults; i++){
 		counter = counter + fault_list[i].TFO_stack.last+1;
+		counter2 = counter2 + (fault_list[i].TFO_stack.last+1 * fault_list[i].tot_patterns);
 		//printf("Error checking\n");
 		//printf("Pulh ->%d %s\n",i,fault_list[i].gate->symbol->symbol);
 		//printf("Our stack contains:\n");
 		//for (j = 0; j<fault_list[i].TFO_stack.last+1; j++) printf("%s\n",fault_list[i].TFO_stack.list[j]->symbol->symbol);
 	}
-
-	return counter;
+	printf("For detection we have %d gates in total\n",counter);
+	return counter2;
 }
 
 void allocate_detect_goodsim(int detected)
