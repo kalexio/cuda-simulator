@@ -28,7 +28,7 @@ __global__ void fill_struct_kernel(THREADFAULTPTR dev_table, int* Vectors, int o
 		dev_table[thread_id].offset = offset;
 		dev_table[thread_id].input[0] = Vectors[thread_id];
 		dev_table[thread_id].m0 = 1;
-		dev_table[thread_id].m1 = 0;
+		//dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -40,7 +40,7 @@ __global__ void fill_struct_kernel1(THREADFAULTPTR dev_table, RESULTPTR dev_res,
 		dev_table[thread_id].offset = offset;
 		dev_table[thread_id].input[k] = dev_res[tid+read_mem].output;
 		dev_table[thread_id].m0 = 1;
-		dev_table[thread_id].m1 = 0;
+		//dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -93,7 +93,7 @@ __global__ void fill_fault_struct_kernel_Paths(THREADFAULTPTR dev_table, RESULTP
 		dev_table[thread_id].offset = offset;
 		dev_table[thread_id].input[k] = dev_res[index+pos].output;
 		//exei ginei memset
-		//dev_table[thread_id].m0 = 1;
+		dev_table[thread_id].m0 = 1;
 		//dev_table[thread_id].m1 = 0;
 	}
 }
@@ -105,6 +105,19 @@ __global__ void fault_injection_kernel(THREADFAULTPTR dev_table2, RESULTPTR dev_
 		int index = data.offset + data.input[0] + data.input[1]*2 + data.input[2]*4 + data.input[3]*8;
 		int output = tex1Dfetch(texLUT,index);
 		dev_res2[tid+pos].output = (output & data.m0) | data.m1;
+	}
+}
+
+
+__global__ void fill_detetection_struct(THREADFAULTPTR dev_table, RESULTPTR dev_res,int offset, int length, int pos, int gatepos,int k, int *patterns_positions,int until_now){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < length) {
+		int thread_id = tid + gatepos;
+		int index = patterns_positions[tid + until_now];
+		dev_table[thread_id].offset = offset;
+		dev_table[thread_id].input[k] = dev_res[index+pos].output;
+		dev_table[thread_id].m0 = 1;
+		//dev_table[thread_id].m1 = 0;
 	}
 }
 
@@ -134,7 +147,7 @@ extern "C" void device_allocations()
 	//HANDLE_ERROR( cudaGetDevice (&dev));
 	//printf("ID of current CUDA device: %d\n",dev);
 
-	HANDLE_ERROR( cudaSetDevice (2));
+	HANDLE_ERROR( cudaSetDevice (0));
 	//HANDLE_ERROR( cudaGetDevice (&dev));
 	//printf("ID of current CUDA device: %d\n",dev);
 
@@ -234,7 +247,7 @@ extern "C" void init_any_level()
 		Cuda_index = Cuda_index + length;
 
 	}
-	HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
+	//HANDLE_ERROR( cudaMemcpy(result_tables, dev_res, Cuda_index* sizeof(int) , cudaMemcpyDeviceToHost));
 	HANDLE_ERROR( cudaFree(dev_table));
 }
 
@@ -349,14 +362,12 @@ extern "C" int fault_init_any_level(){
 	int counter = -1;
 	int prev_tot_patterns;
 
-	threads = 256;
-	blocks = ( patterns + (threads-1))/threads;
 	prev_tot_patterns = tot_patterns;
 
 	for (i = 0; i<total_faults; i++){
 		if (fault_list[i].end != 1) {
 			if(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO){
-				fault_list[i].end = 2;
+				fault_list[i].end = 1;
 			}
 			//not PO yet
 			else{
@@ -385,6 +396,8 @@ extern "C" int fault_init_any_level(){
 							arr = tot_patterns;
 
 							//CALL KERNEL
+							threads = 256;
+							blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
 							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now);
 
 						}//end of if path
@@ -403,6 +416,8 @@ extern "C" int fault_init_any_level(){
 							arr = tot_patterns;
 
 							//CALL KERNEL
+							threads = 256;
+							blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
 							fill_fault_struct_kernel_Paths<<<blocks,threads>>>(dev_table2, dev_res2, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now);
 
 						}//end of else path
@@ -435,116 +450,68 @@ extern "C" void device_allocations3(int tot)
 {
 	HANDLE_ERROR( cudaFree(dev_table2));
 	HANDLE_ERROR( cudaFree(cuda_vecs));
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, tot*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, (tot)*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR(cudaMemset(dev_table3, 0, (tot)*sizeof(THREADFAULTYPE)));
 }
 
 
 
-
-
-
-/*
-void prepare_detection(RESULTPTR goodtable, THREADFAULTPTR dtable)
+extern "C" void prepare_detection_table()
 {
-	int i, j, k;
+	int i, k;
 	GATEPTR cg, hg;
-	int counter = -1;
-	int epipedo, gatepos, array, arr, pos, offset;
+	int counter = 0;
+	int array, arr;
+	int threads,blocks;
 
-	//printf("i am in detect\n");
+	printf("i am in detect\n");
 
 	for (i = 0; i<total_faults; i++){
-		//already done
 		if ((fault_list[i].end == 1) ||(fault_list[i].TFO_stack.list[fault_list[i].TFO_stack.last]->outlis[0]->fn == PO)) {
 			//printf("Arxiko sfalma %s\n",fault_list[i].gate->symbol->symbol);
+			//printf("Exoume %d pules mesa sto %d sfalma\n",fault_list[i].TFO_stack.last,i);
+			while(fault_list[i].TFO_stack.last>=0){
 
-			while(!is_empty(fault_list[i].TFO_stack)){
-				cg = pop(fault_list[i].TFO_stack);
+				//an exei mono ena sfalma tote prpeei na ginei injection
+				cg = fault_list[i].TFO_stack.list[(fault_list[i].TFO_stack.last)--];
 				//printf("lista %s\n",cg->symbol->symbol);
 				//offset = find_offset(cg);
-
-
-				counter++;
-
-				//vres th thesh ths pulhs eksodou apo to logic sim
-				//kai vale thn eksodo sto gootable
-				epipedo = cg->level;
-				//printf("epipeda %d\n",epipedo);
-				gatepos = cg->level_pos;
-				//printf("gatepos %d\n",gatepos);
-
-				array=gatepos*patterns;
-				arr = counter * patterns;
-				//printf("arr %d\n",arr);
-
-				for (j = 0; j<patterns; j++){
-					pos = arr + j;
-					//goodtable[pos].output = result_tables[epipedo][array+j].output;
-					//printf("%d",goodtable[pos].output);
-				}//end for patterns
 
 				//pare ta apotelesmata kai valta ston pinaka detect
 				for (k = 0; k<cg->ninput; k++) {
 					hg = cg->inlis[k];
 					//printf("read inputs %s\n",hg->symbol->symbol);
 					if(hg->TFO_list[i] != 1){
-						//printf("not TFO\n");
-						//epidedo pou vrisketai h pulh kai se shmeio sto epipedo
-						epipedo = hg->level;
-						gatepos = hg->level_pos;
 
 						//h thesh ston apothkeumeno pinaka
-						array=gatepos*patterns;
-						//h thesh ston pinaka pou ftiaxnoume
-
-						arr = counter * patterns;
-						//printf("arr %d\n",arr);
-
-						for (j = 0; j<patterns; j++){
-							pos = arr + j;
-							dtable[pos].offset = cg->offset;
-							//dtable[pos].input[k] = result_tables[epipedo][array+j].output;
-							dtable[pos].input[2] = 0;
-							dtable[pos].input[3] = 0;
-							//printf("%d",dtable[pos].input[k]);
-							//mallon prepei na bgoun
-							dtable[pos].m0 = 1;
-							dtable[pos].m1 = 0;
-						}//end for patterns
+						array = hg->index*patterns;
+						//h thesh ston pinaka pou ftiaxnoume prepei na auxhthei meta
+						arr = counter;
+						threads = 256;
+						blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
+						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now );
 					}
 					else{
-						//printf("TFO!!\n");
-						epipedo = hg->fault_level[i];
-						gatepos = hg->flevel_pos[i];
-
 						//h thesh ston apothkeumeno pinaka
-						array=gatepos*patterns;
+						array = hg->flevel_pos[i];
 						//h thesh ston pinaka pou ftiaxnoume
-						arr = counter * patterns;
-
-						for (j = 0; j<patterns; j++){
-							pos = arr + j;
-							dtable[pos].offset = cg->offset;
-							dtable[pos].input[k] = fault_result_tables[epipedo][array+j].output;
-							dtable[pos].input[2] = 0;
-							dtable[pos].input[3] = 0;
-							//printf("%d",dtable[pos].input[k]);
-							dtable[pos].m0 = 1;
-							dtable[pos].m1 = 0;
-						}//end for patterns
-
+						arr = counter;
+						threads = 256;
+						blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
+						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res2, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now );
 					}
 				}//end for inputs
-
+				counter = counter + fault_list[i].tot_patterns;
 			}//end of while
 
-		}
+		}//if checking
 		else printf("something went wrong!\n");
-	}
+	}//end of faults
 
+	//CALL fault detection kernel
 
 }
-*/
+
 
 
 

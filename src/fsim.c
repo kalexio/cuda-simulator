@@ -62,7 +62,7 @@ void count_fault_patterns()
 		tot_patterns = tot_patterns + fault_list[i].tot_patterns;
 	}
 	patterns_posit = xmalloc(tot_patterns*sizeof(int));
-	//printf("total %d\n",tot_patterns);
+	printf("total patterns to be simulated %d\n",tot_patterns);
 
 	counter = -1;
 	for (i = 0; i<total_faults; i++){
@@ -387,7 +387,7 @@ int compute_detected()
 
 	for (i = 0; i<total_faults; i++){
 		counter = counter + fault_list[i].TFO_stack.last+1;
-		counter2 = counter2 + (fault_list[i].TFO_stack.last+1 * fault_list[i].tot_patterns);
+		counter2 = counter2 + ((fault_list[i].TFO_stack.last+1) * fault_list[i].tot_patterns);
 		//printf("Error checking\n");
 		//printf("Pulh ->%d %s\n",i,fault_list[i].gate->symbol->symbol);
 		//printf("Our stack contains:\n");

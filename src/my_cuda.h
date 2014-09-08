@@ -25,7 +25,8 @@ void init_any_level();
 void device_allocations2(int);
 void fault_init_first_level();
 int fault_init_any_level();
-void device_allocations3(int tot);
+void device_allocations3(int);
+void prepare_detection_table();
 void device_deallocations3();
 int find_offset(GATEPTR);
 

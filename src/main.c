@@ -197,10 +197,11 @@ int main (int argc, char* const argv[])
 	detected = compute_detected();
 	printf("Length of fault detection is %d\n",detected);
 
-	void device_allocations3(detected);
+	device_allocations3(detected);
 	printf("memory3 allocated\n");
 
 	//fault detetction here!!!!
+	prepare_detection_table();
 
 	device_deallocations3();
 	printf("memory deallocated\n");
