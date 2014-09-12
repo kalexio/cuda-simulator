@@ -12,7 +12,8 @@ THREADFAULTPTR dev_table2 = NULL;
 THREADFAULTPTR dev_table3 = NULL;
 RESULTPTR dev_res = NULL;
 RESULTPTR dev_res2 = NULL;
-//RESULTPTR Goodsim = NULL;
+RESULTPTR Goodsim = NULL;
+RESULTPTR Detection_table = NULL;
 int *dev_LUT = NULL;
 int *cuda_vecs = NULL;
 int Cuda_index = 0;
@@ -109,7 +110,7 @@ __global__ void fault_injection_kernel(THREADFAULTPTR dev_table2, RESULTPTR dev_
 }
 
 
-__global__ void fill_detetection_struct(THREADFAULTPTR dev_table, RESULTPTR dev_res,int offset, int length, int pos, int gatepos,int k, int *patterns_positions,int until_now){
+__global__ void fill_detetection_struct(THREADFAULTPTR dev_table, RESULTPTR dev_res,int offset, int length, int pos, int gatepos,int k, int *patterns_positions,int until_now,int good_index,RESULTPTR Goodsim,RESULTPTR devres){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid < length) {
 		int thread_id = tid + gatepos;
@@ -117,6 +118,7 @@ __global__ void fill_detetection_struct(THREADFAULTPTR dev_table, RESULTPTR dev_
 		dev_table[thread_id].offset = offset;
 		dev_table[thread_id].input[k] = dev_res[index+pos].output;
 		dev_table[thread_id].m0 = 1;
+		Goodsim[thread_id] = devres[good_index+index];
 		//dev_table[thread_id].m1 = 0;
 	}
 }
@@ -451,11 +453,13 @@ extern "C" void device_allocations3(int tot)
 	HANDLE_ERROR( cudaFree(dev_table2));
 	HANDLE_ERROR( cudaFree(cuda_vecs));
 	HANDLE_ERROR( cudaMalloc( (void**)&dev_table3, (tot)*sizeof(THREADFAULTYPE)));
+	HANDLE_ERROR( cudaMalloc( (void**)&Goodsim, (tot)*sizeof(int)));
+	HANDLE_ERROR( cudaMalloc( (void**)&Detection_table, (tot)*sizeof(int)));
 	HANDLE_ERROR(cudaMemset(dev_table3, 0, (tot)*sizeof(THREADFAULTYPE)));
 }
 
 
-
+//prepei na eisagw sto fill kernels kai tis times tou goodsim
 extern "C" void prepare_detection_table()
 {
 	int i, k;
@@ -463,6 +467,7 @@ extern "C" void prepare_detection_table()
 	int counter = 0;
 	int array, arr;
 	int threads,blocks;
+	int good_index;
 
 	printf("i am in detect\n");
 
@@ -474,6 +479,10 @@ extern "C" void prepare_detection_table()
 
 				//an exei mono ena sfalma tote prpeei na ginei injection
 				cg = fault_list[i].TFO_stack.list[(fault_list[i].TFO_stack.last)--];
+
+				//apo pou tha diabasei gia to kalo kuklwma gia to detection
+				good_index = cg->index*patterns;
+
 				//printf("lista %s\n",cg->symbol->symbol);
 				//offset = find_offset(cg);
 
@@ -489,7 +498,7 @@ extern "C" void prepare_detection_table()
 						arr = counter;
 						threads = 256;
 						blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
-						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now );
+						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now,good_index,Goodsim,dev_res);
 					}
 					else{
 						//h thesh ston apothkeumeno pinaka
@@ -498,7 +507,7 @@ extern "C" void prepare_detection_table()
 						arr = counter;
 						threads = 256;
 						blocks = ( fault_list[i].tot_patterns + (threads-1))/threads;
-						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res2, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now );
+						fill_detetection_struct<<<threads,blocks>>>(dev_table3, dev_res2, cg->offset,fault_list[i].tot_patterns,array,arr,k,patterns_positions,fault_list[i].until_now,good_index,Goodsim,dev_res);
 					}
 				}//end for inputs
 				counter = counter + fault_list[i].tot_patterns;
@@ -509,7 +518,8 @@ extern "C" void prepare_detection_table()
 	}//end of faults
 
 	//CALL fault detection kernel
-
+	printf("Synoliko %d",counter);
+	fault_detection_kernel<<<threads,blocks>>>(dev_table3,Detection_table,Goodsim, counter);
 }
 
 
@@ -522,10 +532,11 @@ extern "C" void device_deallocations3()
 {
     // Free device global memory
 	HANDLE_ERROR( cudaFree(dev_table3));
+	HANDLE_ERROR( cudaFree(Goodsim));
     HANDLE_ERROR( cudaFree(dev_LUT));
     HANDLE_ERROR( cudaFree(dev_res2));
     HANDLE_ERROR( cudaFree(dev_res));
-    HANDLE_ERROR( cudaDeviceReset());
+    //HANDLE_ERROR( cudaDeviceReset());
 }
 
 
