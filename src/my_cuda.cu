@@ -536,7 +536,7 @@ extern "C" void device_deallocations3()
     HANDLE_ERROR( cudaFree(dev_LUT));
     HANDLE_ERROR( cudaFree(dev_res2));
     HANDLE_ERROR( cudaFree(dev_res));
-    //HANDLE_ERROR( cudaDeviceReset());
+    HANDLE_ERROR( cudaDeviceReset());
 }
 
 
