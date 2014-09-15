@@ -25,6 +25,7 @@ static const struct option long_options[] = {
 };
 
 static const char* const short_options = "hc:v:f:r:l:";
+
 static void print_usage (int is_error);
 
 static const char* const usage_template = 
