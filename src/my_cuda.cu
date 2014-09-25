@@ -154,7 +154,7 @@ extern "C" void device_allocations()
 	//printf("ID of current CUDA device: %d\n",dev);
 
 	//allocations for texture memory
-	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 182*sizeof(int)));
+	HANDLE_ERROR( cudaMalloc( (void**)&dev_LUT, 186*sizeof(int)));
 	//allocations for cuda_vectors
 	HANDLE_ERROR( cudaMalloc( (void**)&cuda_vecs, (patterns*levels[0]) * sizeof(int) ));
     //allocations cuda table
@@ -166,8 +166,8 @@ extern "C" void device_allocations()
 
 
 	//fill and bind the texture
-	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 182*sizeof(int), cudaMemcpyHostToDevice));
-	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 182*sizeof(int)));
+	HANDLE_ERROR( cudaMemcpy(dev_LUT, LUT, 186*sizeof(int), cudaMemcpyHostToDevice));
+	HANDLE_ERROR( cudaBindTexture( NULL,texLUT,dev_LUT, 186*sizeof(int)));
 	//fill the Cuda_vecs
 	HANDLE_ERROR( cudaMemcpy(cuda_vecs, cuda_vectors, (patterns*levels[0]) * sizeof(int) , cudaMemcpyHostToDevice));
 }
@@ -230,7 +230,7 @@ extern "C" void init_any_level()
 			pos++;
 			pos1 = pos*patterns;
 			//printf("i am %s with %d offset\n", cg->symbol->symbol,offset);
-			for (k = 0; k<cg->ninput; k++) {
+			for (k = 0; ((k<cg->ninput) & (k<=3)); k++) {
 				hg = cg->inlis[k];
 				array = hg->index * patterns;
 				fill_struct_kernel1<<<blocks,threads>>>(dev_table, dev_res, offset, patterns, pos1, array, k);
@@ -309,7 +309,7 @@ extern "C" void fault_init_first_level(){
 				cg->flevel_pos[i] = fault_list[i].until_now;
 
 				if (cg->fn != PI) {
-					for (k = 0; k<cg->ninput; k++) {
+					for (k = 0; ((k<cg->ninput) & (k<=3)); k++) {
 						hg = cg->inlis[k];
 						//apo pou tha ksekinhsei na diavazei (Logis sim pinaka)
 						array = hg->index * patterns;
@@ -383,7 +383,7 @@ extern "C" int fault_init_any_level(){
 					//cg->flevel_pos[i] = real_faults;
 					cg->flevel_pos[i] = tot_patterns;
 
-					for (k = 0; k<cg->ninput; k++){
+					for (k = 0; ((k<cg->ninput) & (k<=3)); k++){
 						hg = cg->inlis[k];
 
 						//den einai sto path ara diavase apo to non fault table
@@ -487,7 +487,7 @@ extern "C" void prepare_detection_table()
 				//offset = find_offset(cg);
 
 				//pare ta apotelesmata kai valta ston pinaka detect
-				for (k = 0; k<cg->ninput; k++) {
+				for (k = 0; ((k<cg->ninput) & (k<=3)); k++) {
 					hg = cg->inlis[k];
 					//printf("read inputs %s\n",hg->symbol->symbol);
 					if(hg->TFO_list[i] != 1){
@@ -560,6 +560,8 @@ extern "C" int find_offset (GATEPTR cg)
 			if (inputs == 2) offset = NAND2;
 			else if (inputs == 3) offset = NAND3;
 			else if (inputs == 4) offset = NAND4;
+			break;
+		case XOR: offset = XOR;
 			break;
 		case OR:
 			if (inputs == 2) offset = OR2;

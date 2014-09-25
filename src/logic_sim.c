@@ -9,7 +9,7 @@
 
 int* create_lut (int * LUT)
 {
-	LUT = xmalloc(182*sizeof(int));
+	LUT = xmalloc(186*sizeof(int));
 	//PI
 	LUT[0] = 0;
 	LUT[1] = 1;
@@ -209,6 +209,11 @@ int* create_lut (int * LUT)
 	//NOT
 	LUT[180] = 1;
 	LUT[181] = 0;
+	//XOR
+	LUT[182] = 0;
+	LUT[183] = 1;
+	LUT[184] = 1;
+	LUT[185] = 0;
 	
 	return LUT;
 }

@@ -15,6 +15,7 @@
 #define         NAND            3
 #define         OR              5
 #define         NOR             6
+#define			XOR				182
 
 #define         PI              0	//regular
 #define         PO              2   //regular
